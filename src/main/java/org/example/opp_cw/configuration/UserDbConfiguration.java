@@ -9,14 +9,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @Configuration
-@EnableMongoRepositories(basePackageClasses = {CustomerRepository.class, AdminRepository.class}, mongoTemplateRef = "usersMongoTemplate")
+@EnableMongoRepositories(basePackageClasses = {CustomerRepository.class, AdminRepository.class})
 @EnableConfigurationProperties
-public class UserDbConfiguration {
+public class UserDbConfiguration extends AbstractMongoClientConfiguration {
+
+    @Override
+    protected String getDatabaseName() {
+        return null;
+    }
 
     @Primary
     @Bean(name = "usersDBProperties")
@@ -25,16 +30,21 @@ public class UserDbConfiguration {
         return new MongoProperties();
     }
 
+    @Override
     @Bean
-    public MongoDatabaseFactory usersMongoDatabaseFactory(MongoProperties mongo) throws Exception {
-        return new SimpleMongoClientDatabaseFactory(
-                mongo.getUri()
-        );
+    public MongoDatabaseFactory mongoDbFactory() {
+        try {
+            return new SimpleMongoClientDatabaseFactory(
+                    getUsersProps().getUri()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @Bean(name = "usersMongoTemplate")
-    public MongoTemplate usersMongoTemplate() throws Exception {
-        return new MongoTemplate(usersMongoDatabaseFactory(getUsersProps()));
+    @Override
+    protected boolean autoIndexCreation() {
+        return true;
     }
 }
 
