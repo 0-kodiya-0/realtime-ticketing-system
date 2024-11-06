@@ -1,18 +1,24 @@
 package org.example.opp_cw.dto;
 
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.core.index.Indexed;
+import lombok.NonNull;
 
 @Data
+@NonNull
 @NoArgsConstructor
 @AllArgsConstructor
-public class Address {
+public abstract class Address {
+    @Pattern(regexp = "^[a-z]+$", message = "invalid province")
     private String province;
+    @Pattern(regexp = "^[a-z]+$", message = "invalid city")
     private String city;
+    @Pattern(regexp = "^[a-z]+$", message = "invalid street")
     private String street;
-    @Indexed(unique = true)
+    @Pattern(regexp = "^[a-z]+$", message = "invalid address")
     private String address;
+    @Pattern(regexp = "^[0-9]+$", message = "invalid postalCode")
     private String postalCode;
 }
