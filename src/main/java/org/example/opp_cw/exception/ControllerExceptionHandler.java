@@ -1,6 +1,10 @@
 package org.example.opp_cw.exception;
 
+import com.mongodb.ErrorCategory;
+import com.mongodb.MongoWriteException;
+import com.mongodb.WriteError;
 import jakarta.validation.ConstraintViolationException;
+import org.example.opp_cw.dto.WriteErrorResponse;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -26,5 +30,14 @@ public class ControllerExceptionHandler extends ResponseEntityExceptionHandler {
         });
 
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MongoWriteException.class)
+    public ResponseEntity<Object> handleMongoDbExceptions(MongoWriteException ex) {
+        if (ex.getError().getCategory() == ErrorCategory.DUPLICATE_KEY) {
+            WriteErrorResponse errorResponse = new WriteErrorResponse(ex.getError());
+            return new ResponseEntity<>(errorResponse, errorResponse.getStatus());
+        }
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }
