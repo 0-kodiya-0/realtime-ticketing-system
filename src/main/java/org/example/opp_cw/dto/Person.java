@@ -1,13 +1,12 @@
-package org.example.opp_cw.model;
+package org.example.opp_cw.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import lombok.NonNull;
 import org.example.opp_cw.annotation.ValueOfEnum;
-import org.example.opp_cw.dto.Address;
 import org.example.opp_cw.enums.Gender;
 import org.example.opp_cw.enums.Nationality;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -20,16 +19,16 @@ import java.time.Period;
 @Data
 @CompoundIndex(def = "{'name': 1, 'surname': 1}", unique = true)
 public abstract class Person {
-    @NonNull
+    @NotNull
     @Pattern(regexp = "^[a-z]+$", message = "invalid name")
     private String name;
-    @NonNull
+    @NotNull
     @Pattern(regexp = "^[a-z]+$", message = "invalid surname")
     private String surname;
-    @NonNull
+    @NotNull
     @ValueOfEnum(enumClass = Gender.class)
     private String gender;
-    @NonNull
+    @NotNull
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
     @Min(15)
@@ -40,10 +39,10 @@ public abstract class Person {
     private String nic;
     @Valid
     private Address address;
-    @NonNull
+    @NotNull
     @ValueOfEnum(enumClass = Nationality.class)
     private String nationality;
-    private boolean isAuthorized = false;
+    private boolean isSystemAuthorized = false;
     private boolean isVisible = false;
     private boolean isDeleted = false;
 
@@ -56,7 +55,7 @@ public abstract class Person {
         return period.getYears();
     }
 
-    public void setDateOfBirth(@NonNull LocalDate dateOfBirth) {
+    public void setDateOfBirth(@NotNull LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
         this.age = calculateAge(dateOfBirth);
     }
