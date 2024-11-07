@@ -3,11 +3,11 @@ package org.example.opp_cw.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.example.opp_cw.dto.Person;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
-@Document("Customer")
+@Document
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Customer extends Person {
