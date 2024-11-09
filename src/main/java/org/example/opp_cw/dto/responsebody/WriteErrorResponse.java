@@ -1,4 +1,4 @@
-package org.example.opp_cw.dto;
+package org.example.opp_cw.dto.responsebody;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mongodb.WriteError;

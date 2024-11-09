@@ -2,9 +2,8 @@ package org.example.opp_cw.exception;
 
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoWriteException;
-import com.mongodb.WriteError;
 import jakarta.validation.ConstraintViolationException;
-import org.example.opp_cw.dto.WriteErrorResponse;
+import org.example.opp_cw.dto.responsebody.WriteErrorResponse;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;

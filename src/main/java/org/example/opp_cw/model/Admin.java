@@ -3,10 +3,11 @@ package org.example.opp_cw.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bson.types.ObjectId;
-import org.example.opp_cw.dto.Person;
+import org.example.opp_cw.dto.userdetails.Person;
 import org.example.opp_cw.enums.AccessLevel;
 import org.example.opp_cw.enums.Privileges;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.util.List;
@@ -15,8 +16,11 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class Admin extends Person {
-    @MongoId
-    private ObjectId id;
+    @MongoId(FieldType.STRING)
+    private String id;
     private AccessLevel accessLevel;
     private List<Privileges> privileges;
+    private boolean isSystemAuthorized = false;
+    private boolean isVisible = false;
+    private boolean isDeleted = false;
 }

@@ -1,4 +1,4 @@
-package org.example.opp_cw.dto;
+package org.example.opp_cw.dto.userdetails;
 
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
