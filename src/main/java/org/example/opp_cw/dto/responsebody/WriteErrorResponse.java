@@ -1,27 +1,21 @@
 package org.example.opp_cw.dto.responsebody;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mongodb.WriteError;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.http.HttpStatus;
 
-import java.time.LocalDateTime;
-
 @Data
-public class WriteErrorResponse {
-    private HttpStatus status;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyyMMdd hh:mm:ss")
-    private LocalDateTime timestamp;
-    private String message;
+@EqualsAndHashCode(callSuper = true)
+public class WriteErrorResponse extends ApiErrorResponse {
 
-    public WriteErrorResponse(WriteError error) {
-        this.timestamp = LocalDateTime.now();
-        this.status = HttpStatus.BAD_REQUEST;
-        this.message = extractDuplicateKey(error.getMessage());
-        if (message == null) {
+    public WriteErrorResponse(WriteError error, HttpServletRequest request) {
+        super(HttpStatus.BAD_REQUEST, extractDuplicateKey(error.getMessage()), request);
+        if (getError() == null) {
             System.out.println(error);
-            this.status = HttpStatus.INTERNAL_SERVER_ERROR;
-            this.message = "Internal Server Error";
+            setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+            setError("Internal Server Error");
         }
     }
 

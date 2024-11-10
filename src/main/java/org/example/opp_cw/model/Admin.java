@@ -20,7 +20,4 @@ public class Admin extends Person {
     private String id;
     private AccessLevel accessLevel;
     private List<Privileges> privileges;
-    private boolean isSystemAuthorized = false;
-    private boolean isVisible = false;
-    private boolean isDeleted = false;
 }

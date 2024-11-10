@@ -4,6 +4,7 @@ import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Payload;
+import org.example.opp_cw.dto.RandomSecureCode;
 
 import java.lang.annotation.*;
 import java.util.List;
@@ -20,10 +21,10 @@ public @interface IsValueNull {
     Class<? extends Payload>[] payload() default {};
 }
 
-class IsValueNullValidator implements ConstraintValidator<IsValueNull, List<Integer>> {
+class IsValueNullValidator implements ConstraintValidator<IsValueNull, List<RandomSecureCode>> {
 
     @Override
-    public boolean isValid(List<Integer> integers, ConstraintValidatorContext constraintValidatorContext) {
-        return integers == null;
+    public boolean isValid(List<RandomSecureCode> secureCode, ConstraintValidatorContext constraintValidatorContext) {
+        return secureCode == null;
     }
 }

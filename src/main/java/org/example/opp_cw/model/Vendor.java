@@ -1,5 +1,6 @@
 package org.example.opp_cw.model;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,12 +14,12 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Document
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class Vendor extends Person {
+public class Vendor {
     @MongoId(FieldType.STRING)
     private String Id;
     @IsObjectIdValid
     private String customerId;
+    @NotBlank
     @Pattern(regexp = "^[a-z]+$", message = "invalid vendor name")
     private String vendorName;
     @ValueOfEnum(enumClass = VendorType.class)

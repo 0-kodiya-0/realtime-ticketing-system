@@ -1,6 +1,7 @@
 package org.example.opp_cw.controller;
 
 
+import jakarta.validation.Valid;
 import org.example.opp_cw.dto.requestbody.SignUpRequest;
 import org.example.opp_cw.enums.UsersType;
 import org.example.opp_cw.services.SignUpService;
@@ -21,7 +22,7 @@ public class SignUpController {
     }
 
     @PostMapping("/customer")
-    public ResponseEntity<Boolean> signupCustomer(@RequestBody SignUpRequest signUpRequest) {
+    public ResponseEntity<Boolean> signupCustomer(@Valid @RequestBody SignUpRequest signUpRequest) {
         return ResponseEntity.ok(signUpService.signUp(UsersType.CUSTOMER, signUpRequest));
     }
 }

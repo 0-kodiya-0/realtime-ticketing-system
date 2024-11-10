@@ -1,10 +1,7 @@
 package org.example.opp_cw.dto.userdetails;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.example.opp_cw.annotation.ValueOfEnum;
 import org.example.opp_cw.enums.Gender;
@@ -19,13 +16,13 @@ import java.time.Period;
 @Data
 @CompoundIndex(def = "{'name': 1, 'surname': 1}", unique = true)
 public abstract class Person {
-    @NotNull
+    @NotBlank
     @Pattern(regexp = "^[a-z]+$", message = "invalid name")
     private String name;
-    @NotNull
+    @NotBlank
     @Pattern(regexp = "^[a-z]+$", message = "invalid surname")
     private String surname;
-    @NotNull
+    @NotBlank
     @ValueOfEnum(enumClass = Gender.class)
     private String gender;
     @NotNull
@@ -39,7 +36,7 @@ public abstract class Person {
     private String nic;
     @Valid
     private Address address;
-    @NotNull
+    @NotBlank
     @ValueOfEnum(enumClass = Nationality.class)
     private String nationality;
     private boolean isSystemAuthorized = false;

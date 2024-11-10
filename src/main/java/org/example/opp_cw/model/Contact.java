@@ -2,6 +2,8 @@ package org.example.opp_cw.model;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.example.opp_cw.annotation.IsObjectIdValid;
 import org.example.opp_cw.dto.userdetails.PhoneNumber;
@@ -16,12 +18,14 @@ public class Contact {
     private String id;
     @IsObjectIdValid
     private String ownerId;
+    @NotBlank
     @Email
     private String email;
     private boolean isEmailVerified = false;
     @Email
     private String recoveryEmail;
     private boolean isRecoveryEmailVerified = false;
+    @NotNull
     @Valid
     private PhoneNumber phoneNumber;
     private boolean phoneNumberVerified = false;

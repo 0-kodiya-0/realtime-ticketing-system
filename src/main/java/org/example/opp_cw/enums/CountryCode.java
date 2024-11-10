@@ -14,6 +14,6 @@ public enum CountryCode {
 
     @Override
     public String toString() {
-        return getCountryCode();
+        return countryCode;
     }
 }
