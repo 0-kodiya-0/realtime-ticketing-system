@@ -21,11 +21,11 @@ public class CustomerService {
     private CredentialsRepository credentialsRepository;
 
     public void saveCustomer(Customer customer, Credentials credentials, Contact contact) {
-        customer = customerRepository.save(customer);
+        customer = customerRepository.insert(customer);
         credentials.setOwnerId(customer.getId());
         contact.setOwnerId(customer.getId());
-        credentialsRepository.save(credentials);
-        contactRepository.save(contact);
+        credentialsRepository.insert(credentials);
+        contactRepository.insert(contact);
     }
 
     public List<Customer> findAll() {
