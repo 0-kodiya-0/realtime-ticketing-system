@@ -12,28 +12,28 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-public class ApiErrorResponse {
+public class ApiResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private final LocalDateTime timestamp = LocalDateTime.now();
     private HttpStatus status;
-    private Map<String, String> error;
+    private Map<String, String> details;
     private String path;
 
-    public ApiErrorResponse(HttpStatus status, String error, HttpServletRequest request) {
+    public ApiResponse(HttpStatus status, String details, HttpServletRequest request) {
         this.status = status;
-        this.error = new HashMap<>();
-        this.error.put("message", error);
+        this.details = new HashMap<>();
+        this.details.put("message", details);
         this.path = request.getRequestURI();
     }
 
-    public ApiErrorResponse(HttpStatus httpStatus, Map<String, String> error, HttpServletRequest request) {
+    public ApiResponse(HttpStatus httpStatus, Map<String, String> details, HttpServletRequest request) {
         this.status = httpStatus;
-        this.error = error;
+        this.details = details;
         this.path = request.getRequestURI();
     }
 
-    public void setError(String error) {
-        this.error = new HashMap<>();
-        this.error.put("message", error);
+    public void setError(String details) {
+        this.details = new HashMap<>();
+        this.details.put("message", details);
     }
 }

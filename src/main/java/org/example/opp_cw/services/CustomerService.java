@@ -1,5 +1,6 @@
 package org.example.opp_cw.services;
 
+import org.bson.types.ObjectId;
 import org.example.opp_cw.model.Contact;
 import org.example.opp_cw.model.Credentials;
 import org.example.opp_cw.model.Customer;
@@ -21,11 +22,14 @@ public class CustomerService {
     private CredentialsRepository credentialsRepository;
 
     public void saveCustomer(Customer customer, Credentials credentials, Contact contact) {
-        customer = customerRepository.insert(customer);
-        credentials.setOwnerId(customer.getId());
-        contact.setOwnerId(customer.getId());
+        ObjectId id = ObjectId.get();
+        customer.set_id(id);
+        credentials.encodePassword();
+        credentials.set_id(id);
+        contact.set_id(id);
         credentialsRepository.insert(credentials);
         contactRepository.insert(contact);
+        customerRepository.insert(customer);
     }
 
     public List<Customer> findAll() {

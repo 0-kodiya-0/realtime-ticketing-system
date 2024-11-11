@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 
 @Documented
 @Constraint(validatedBy = IsPasswordValidator.class)
-@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IsPasswordValid {
     String message() default "password is not valid";
@@ -22,7 +22,7 @@ public @interface IsPasswordValid {
 class IsPasswordValidator implements ConstraintValidator<IsPasswordValid, String> {
 
     @Override
-    public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
-        return s != null && !(s.isBlank()) && s.matches("^[a-zA-Z0-9@_*.]+$") && s.length() >= 8 && s.length() <= 16;
+    public boolean isValid(String strValue, ConstraintValidatorContext context) {
+        return strValue != null && !(strValue.isBlank()) && strValue.matches("^[a-zA-Z0-9@_*.$]+$") && strValue.length() >= 8;
     }
 }

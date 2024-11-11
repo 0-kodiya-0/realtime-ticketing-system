@@ -10,7 +10,7 @@ import java.lang.annotation.*;
 
 @Documented
 @Constraint(validatedBy = IsObjectIdValidator.class)
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IsObjectIdValid {
     String message() default "invalid object id";
@@ -20,10 +20,10 @@ public @interface IsObjectIdValid {
     Class<? extends Payload>[] payload() default {};
 }
 
-class IsObjectIdValidator implements ConstraintValidator<IsObjectIdValid, String> {
+class IsObjectIdValidator implements ConstraintValidator<IsObjectIdValid, ObjectId> {
 
     @Override
-    public boolean isValid(String str, ConstraintValidatorContext constraintValidatorContext) {
-        return ObjectId.isValid(str);
+    public boolean isValid(ObjectId objIdValue, ConstraintValidatorContext context) {
+        return objIdValue != null && ObjectId.isValid(objIdValue.toHexString());
     }
 }

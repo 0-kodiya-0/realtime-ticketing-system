@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 @Documented
 @Constraint(validatedBy = ValueOfEnumValidator.class)
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValueOfEnum {
     Class<? extends Enum<?>> enumClass();
@@ -36,9 +36,9 @@ class ValueOfEnumValidator implements ConstraintValidator<ValueOfEnum, String> {
     }
 
     @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
+    public boolean isValid(String strValue, ConstraintValidatorContext context) {
         context.disableDefaultConstraintViolation();
         context.buildConstraintViolationWithTemplate(customMessage).addConstraintViolation();
-        return value == null || Arrays.asList(acceptedValues).contains(value);
+        return strValue != null && !(strValue.isBlank()) && Arrays.asList(acceptedValues).contains(strValue);
     }
 }

@@ -1,24 +1,20 @@
 package org.example.opp_cw.dto.userdetails;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.opp_cw.annotation.IsRegexValid;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class Address {
-    @Pattern(regexp = "^[a-z]+$", message = "invalid province")
+    @IsRegexValid(regexp = "^[a-z]+$", isNullable = true)
     private String province;
-    @Pattern(regexp = "^[a-z]+$", message = "invalid city")
+    @IsRegexValid(regexp = "^[a-z]+$", isNullable = true)
     private String city;
-    @Pattern(regexp = "^[a-z]+$", message = "invalid street")
+    @IsRegexValid(regexp = "^[a-z]+$", isNullable = true)
     private String street;
-    @Pattern(regexp = "^[a-z]+$", message = "invalid address")
-    @NotBlank
+    @IsRegexValid(regexp = "^[a-z]+$")
     private String address;
-    @Pattern(regexp = "^[0-9]+$", message = "invalid postalCode")
+    @IsRegexValid(regexp = "^[0-9]+$")
     private String postalCode;
 }

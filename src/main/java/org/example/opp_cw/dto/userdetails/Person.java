@@ -1,8 +1,11 @@
 package org.example.opp_cw.dto.userdetails;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.example.opp_cw.annotation.IsRegexValid;
 import org.example.opp_cw.annotation.ValueOfEnum;
 import org.example.opp_cw.enums.Gender;
 import org.example.opp_cw.enums.Nationality;
@@ -16,13 +19,10 @@ import java.time.Period;
 @Data
 @CompoundIndex(def = "{'name': 1, 'surname': 1}", unique = true)
 public abstract class Person {
-    @NotBlank
-    @Pattern(regexp = "^[a-z]+$", message = "invalid name")
+    @IsRegexValid(regexp = "^[a-z]+$")
     private String name;
-    @NotBlank
-    @Pattern(regexp = "^[a-z]+$", message = "invalid surname")
+    @IsRegexValid(regexp = "^[a-z]+$")
     private String surname;
-    @NotBlank
     @ValueOfEnum(enumClass = Gender.class)
     private String gender;
     @NotNull
@@ -32,11 +32,10 @@ public abstract class Person {
     @Max(100)
     private int age;
     @Indexed(unique = true, partialFilter = "{ 'nic': { '$exists': true } }")
-    @Pattern(regexp = "^[0-9]+$", message = "invalid nic")
+    @IsRegexValid(regexp = "^[0-9]+$", isNullable = true)
     private String nic;
     @Valid
     private Address address;
-    @NotBlank
     @ValueOfEnum(enumClass = Nationality.class)
     private String nationality;
     private boolean isSystemAuthorized = false;
@@ -52,7 +51,7 @@ public abstract class Person {
         return period.getYears();
     }
 
-    public void setDateOfBirth(@NotNull LocalDate dateOfBirth) {
+    public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
         this.age = calculateAge(dateOfBirth);
     }

@@ -1,8 +1,10 @@
 package org.example.opp_cw.controller;
 
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.example.opp_cw.dto.requestbody.SignUpRequest;
+import org.example.opp_cw.dto.responsebody.ApiResponse;
 import org.example.opp_cw.enums.UsersType;
 import org.example.opp_cw.model.Customer;
 import org.example.opp_cw.services.CustomerService;
@@ -30,8 +32,9 @@ public class SignUpController {
     }
 
     @PostMapping("/customer")
-    public ResponseEntity<Boolean> signupCustomer(@Valid @RequestBody SignUpRequest signUpRequest) {
-        return ResponseEntity.ok(signUpService.signUp(UsersType.CUSTOMER, signUpRequest));
+    public ResponseEntity<ApiResponse> signupCustomer(@Valid @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) {
+        ApiResponse apiResponse = signUpService.signUp(UsersType.CUSTOMER, signUpRequest, request);
+        return new ResponseEntity<>(apiResponse, apiResponse.getStatus());
     }
 
 }

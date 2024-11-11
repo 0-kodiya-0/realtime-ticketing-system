@@ -8,11 +8,11 @@ import org.springframework.http.HttpStatus;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class WriteErrorResponse extends ApiErrorResponse {
+public class WriteResponse extends ApiResponse {
 
-    public WriteErrorResponse(WriteError error, HttpServletRequest request) {
+    public WriteResponse(WriteError error, HttpServletRequest request) {
         super(HttpStatus.BAD_REQUEST, extractDuplicateKey(error.getMessage()), request);
-        if (getError() == null) {
+        if (getDetails() == null) {
             System.out.println(error);
             setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             setError("Internal Server Error");

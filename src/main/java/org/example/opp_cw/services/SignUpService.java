@@ -1,12 +1,15 @@
 package org.example.opp_cw.services;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.example.opp_cw.dto.requestbody.SignUpRequest;
+import org.example.opp_cw.dto.responsebody.ApiResponse;
 import org.example.opp_cw.enums.UsersType;
 import org.example.opp_cw.model.Admin;
 import org.example.opp_cw.model.Contact;
 import org.example.opp_cw.model.Credentials;
 import org.example.opp_cw.model.Customer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,52 +20,15 @@ public class SignUpService {
     @Autowired
     private AdminService adminService;
 
-    public boolean signUp(UsersType usersType, SignUpRequest signUpRequest) {
+    public ApiResponse signUp(UsersType usersType, SignUpRequest signUpRequest, HttpServletRequest request) {
         if (usersType == UsersType.VENDOR) {
-            return false;
+            return new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request);
         }
         if (usersType == UsersType.ADMIN) {
-           return false;
+            return new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request);
         } else {
-            Credentials credentials = credentialRegister(signUpRequest);
-            Contact contact = contactRegister(signUpRequest);
-            Customer customer = customerSignUp(signUpRequest);
-            customerService.saveCustomer(customer, credentials, contact);
+            customerService.saveCustomer(signUpRequest.getCustomer(), signUpRequest.getCredentials(), signUpRequest.getContact());
         }
-        return true;
-    }
-
-    private Customer customerSignUp(SignUpRequest signUpRequest) {
-        Customer customer = new Customer();
-        // Setting customer details
-        customer.setName(signUpRequest.getName());
-        customer.setSurname(signUpRequest.getSurname());
-        customer.setGender(signUpRequest.getGender());
-        customer.setDateOfBirth(signUpRequest.getDateOfBirth());
-        customer.setNic(signUpRequest.getNic());
-        customer.setAddress(signUpRequest.getAddress());
-        customer.setNationality(signUpRequest.getNationality());
-        return customer;
-    }
-
-    private Admin adminSignUp(SignUpRequest signUpRequest) {
-        Admin admin = new Admin();
-        return admin;
-    }
-
-    private Credentials credentialRegister(SignUpRequest signUpRequest) {
-        Credentials credentials = new Credentials();
-        // Setting credentials details
-        credentials.setUserName(signUpRequest.getUserName());
-        credentials.setPassword(signUpRequest.getPassword());
-        return credentials;
-    }
-
-    private Contact contactRegister(SignUpRequest signUpRequest) {
-        Contact contact = new Contact();
-        // Setting contact details
-        contact.setEmail(signUpRequest.getEmail());
-        contact.setPhoneNumber(signUpRequest.getPhoneNumber());
-        return contact;
+        return new ApiResponse(HttpStatus.OK, "signup success full", request);
     }
 }

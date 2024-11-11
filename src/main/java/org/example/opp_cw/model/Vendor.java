@@ -1,28 +1,26 @@
 package org.example.opp_cw.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 import org.example.opp_cw.annotation.IsObjectIdValid;
+import org.example.opp_cw.annotation.IsRegexValid;
 import org.example.opp_cw.annotation.ValueOfEnum;
-import org.example.opp_cw.dto.userdetails.Person;
 import org.example.opp_cw.enums.VendorType;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.FieldType;
-import org.springframework.data.mongodb.core.mapping.MongoId;
 
 @Document
 @Data
+@NoArgsConstructor
 public class Vendor {
-    @MongoId(FieldType.STRING)
-    private String Id;
-    @IsObjectIdValid
-    private String customerId;
-    @NotBlank
-    @Pattern(regexp = "^[a-z]+$", message = "invalid vendor name")
+    private ObjectId _id;
+    @IsRegexValid(regexp = "^[a-z]+$")
     private String vendorName;
     @ValueOfEnum(enumClass = VendorType.class)
     private String vendorType;
     private boolean isVerified = false;
+
+    public void set_id(@IsObjectIdValid ObjectId _id) {
+        this._id = _id;
+    }
 }
