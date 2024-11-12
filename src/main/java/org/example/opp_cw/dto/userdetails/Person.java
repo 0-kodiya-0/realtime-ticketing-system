@@ -9,15 +9,13 @@ import org.example.opp_cw.annotation.IsRegexValid;
 import org.example.opp_cw.annotation.ValueOfEnum;
 import org.example.opp_cw.enums.Gender;
 import org.example.opp_cw.enums.Nationality;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.Period;
 
 @Data
-@CompoundIndex(def = "{'name': 1, 'surname': 1}", unique = true)
+//@CompoundIndex(def = "{'name': 1, 'surname': 1}", unique = true)
 public abstract class Person {
     @IsRegexValid(regexp = "^[a-z]+$")
     private String name;
@@ -31,7 +29,7 @@ public abstract class Person {
     @Min(15)
     @Max(100)
     private int age;
-    @Indexed(unique = true, partialFilter = "{ 'nic': { '$exists': true } }")
+    //    @Indexed(unique = true, partialFilter = "{ 'nic': { '$exists': true } }")
     @IsRegexValid(regexp = "^[0-9]+$", isNullable = true)
     private String nic;
     @Valid

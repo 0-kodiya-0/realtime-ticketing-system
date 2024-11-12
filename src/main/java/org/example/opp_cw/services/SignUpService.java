@@ -1,13 +1,10 @@
 package org.example.opp_cw.services;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.example.opp_cw.dto.requestbody.SignUpRequest;
+import org.example.opp_cw.dto.requestbody.AdminSignUpRequest;
+import org.example.opp_cw.dto.requestbody.CustomerSignUpRequest;
 import org.example.opp_cw.dto.responsebody.ApiResponse;
 import org.example.opp_cw.enums.UsersType;
-import org.example.opp_cw.model.Admin;
-import org.example.opp_cw.model.Contact;
-import org.example.opp_cw.model.Credentials;
-import org.example.opp_cw.model.Customer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,15 +17,13 @@ public class SignUpService {
     @Autowired
     private AdminService adminService;
 
-    public ApiResponse signUp(UsersType usersType, SignUpRequest signUpRequest, HttpServletRequest request) {
-        if (usersType == UsersType.VENDOR) {
-            return new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request);
-        }
-        if (usersType == UsersType.ADMIN) {
-            return new ApiResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request);
-        } else {
-            customerService.saveCustomer(signUpRequest.getCustomer(), signUpRequest.getCredentials(), signUpRequest.getContact());
-        }
+    public ApiResponse signUp(CustomerSignUpRequest customerSignUpRequest, HttpServletRequest request) {
+        customerService.saveCustomer(customerSignUpRequest.getCustomer(), customerSignUpRequest.getCredentials(), customerSignUpRequest.getContact());
+        return new ApiResponse(HttpStatus.OK, "signup success full", request);
+    }
+
+    public ApiResponse signUp(AdminSignUpRequest adminSignUpRequest, HttpServletRequest request) {
+        adminService.saveAdmin(adminSignUpRequest.getAdmin(), adminSignUpRequest.getCredentials(), adminSignUpRequest.getContact());
         return new ApiResponse(HttpStatus.OK, "signup success full", request);
     }
 }

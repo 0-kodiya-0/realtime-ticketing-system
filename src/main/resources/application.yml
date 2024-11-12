@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: OOP_CW
+  data:
+    mongodb:
+      customer:
+        uri: mongodb://localhost:27017/customer_db
+      admin:
+        uri: mongodb://localhost:27017/admin_db
+
+server:
+  port: 8080

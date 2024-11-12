@@ -10,7 +10,7 @@ import org.example.opp_cw.model.Customer;
 
 @Data
 @NoArgsConstructor
-public class SignUpRequest {
+public class CustomerSignUpRequest {
     @NotNull
     @Valid
     private Customer customer;

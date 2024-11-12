@@ -3,9 +3,9 @@ package org.example.opp_cw.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.example.opp_cw.dto.requestbody.SignUpRequest;
+import org.example.opp_cw.dto.requestbody.AdminSignUpRequest;
+import org.example.opp_cw.dto.requestbody.CustomerSignUpRequest;
 import org.example.opp_cw.dto.responsebody.ApiResponse;
-import org.example.opp_cw.enums.UsersType;
 import org.example.opp_cw.model.Customer;
 import org.example.opp_cw.services.CustomerService;
 import org.example.opp_cw.services.SignUpService;
@@ -32,8 +32,14 @@ public class SignUpController {
     }
 
     @PostMapping("/customer")
-    public ResponseEntity<ApiResponse> signupCustomer(@Valid @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) {
-        ApiResponse apiResponse = signUpService.signUp(UsersType.CUSTOMER, signUpRequest, request);
+    public ResponseEntity<ApiResponse> signupCustomer(@Valid @RequestBody CustomerSignUpRequest customerSignUpRequest, HttpServletRequest request) {
+        ApiResponse apiResponse = signUpService.signUp(customerSignUpRequest, request);
+        return new ResponseEntity<>(apiResponse, apiResponse.getStatus());
+    }
+
+    @PostMapping("/admin")
+    public ResponseEntity<ApiResponse> signupAdmin(@Valid @RequestBody AdminSignUpRequest adminSignUpRequest, HttpServletRequest request) {
+        ApiResponse apiResponse = signUpService.signUp(adminSignUpRequest, request);
         return new ResponseEntity<>(apiResponse, apiResponse.getStatus());
     }
 

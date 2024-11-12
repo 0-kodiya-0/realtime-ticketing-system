@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import org.example.opp_cw.annotation.IsObjectIdValid;
 import org.example.opp_cw.annotation.IsRegexValid;
 import org.example.opp_cw.dto.userdetails.PhoneNumber;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
@@ -15,14 +14,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 public class Contact {
     private Object _id;
-    @Indexed(unique = true)
+    //    @Indexed(unique = true)
     @IsRegexValid(regexp = "^((?!\\.)[\\w\\-_.]*[^.])(@\\w+)(\\.\\w+(\\.\\w+)?[^.\\W])$")
     private String email;
     private boolean isEmailVerified = false;
     @IsRegexValid(regexp = "^((?!\\.)[\\w\\-_.]*[^.])(@\\w+)(\\.\\w+(\\.\\w+)?[^.\\W])$", isNullable = true)
     private String recoveryEmail;
     private boolean isRecoveryEmailVerified = false;
-    @Indexed(unique = true)
+    //    @Indexed(unique = true)
     @NotNull
     @Valid
     private PhoneNumber phoneNumber;

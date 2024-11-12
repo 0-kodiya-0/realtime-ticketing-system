@@ -1,4 +1,4 @@
-package org.example.opp_cw.repository;
+package org.example.opp_cw.repository.admin;
 
 import org.example.opp_cw.model.Admin;
 import org.springframework.data.mongodb.repository.MongoRepository;

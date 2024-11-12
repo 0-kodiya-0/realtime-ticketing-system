@@ -1,4 +1,4 @@
-package org.example.opp_cw.repository;
+package org.example.opp_cw.repository.customer;
 
 import org.bson.types.ObjectId;
 import org.example.opp_cw.model.Customer;
