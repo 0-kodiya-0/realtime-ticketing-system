@@ -4,5 +4,5 @@ import lombok.Getter;
 
 @Getter
 public enum AccessLevel {
-    ROOT, ADMIN, MODERATOR, GUEST;
+    ROOT, ADMIN, CUSTOMER, VENDOR, SIGNUP, LOGIN;
 }
