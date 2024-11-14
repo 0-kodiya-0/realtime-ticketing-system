@@ -10,4 +10,10 @@ import org.springframework.stereotype.Repository;
 public interface CustomerRepository extends MongoRepository<Customer, String> {
     @Query(value = "{ '_id' : ?0 }", fields = "{ '_id' : 1 }", exists = true)
     boolean existsById(ObjectId id);
+
+    @Query(value = "{ '_id' : ?0 }", fields = "{ '_id' : 1 }")
+    Customer findById(ObjectId id);
+
+    @Query(value = "{ '_id' : ?0, 'isSystemAuthorized': true, 'isVisible': true }", exists = true)
+    boolean isCustomerVerified(ObjectId id);
 }
