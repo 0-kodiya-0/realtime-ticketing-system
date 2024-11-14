@@ -1,13 +1,17 @@
 package org.example.opp_cw.services;
 
+import com.mongodb.client.result.UpdateResult;
 import org.bson.types.ObjectId;
+import org.example.opp_cw.enums.AccessLevel;
 import org.example.opp_cw.model.Contact;
 import org.example.opp_cw.model.Credentials;
 import org.example.opp_cw.model.Customer;
-import org.example.opp_cw.repository.customer.CustomerContactRepository;
-import org.example.opp_cw.repository.customer.CustomerCredentialsRepository;
-import org.example.opp_cw.repository.customer.CustomerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,30 +19,71 @@ import java.util.List;
 
 @Service
 public class CustomerService {
-    private final CustomerRepository customerRepository;
-    private final CustomerContactRepository customerContactRepository;
-    private final CustomerCredentialsRepository customerCredentialsRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final MongoTemplate customerMongoTemplate;
 
-    public CustomerService(CustomerRepository customerRepository, CustomerContactRepository customerContactRepository, CustomerCredentialsRepository customerCredentialsRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.customerRepository = customerRepository;
-        this.customerContactRepository = customerContactRepository;
-        this.customerCredentialsRepository = customerCredentialsRepository;
+    public CustomerService(BCryptPasswordEncoder bCryptPasswordEncoder, @Qualifier("customerMongoTemplate") MongoTemplate customerMongoTemplate) {
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.customerMongoTemplate = customerMongoTemplate;
     }
 
-    public void saveCustomer(Customer customer, Credentials credentials, Contact contact) {
+    public ObjectId saveCustomer(Customer customer) {
         ObjectId id = ObjectId.get();
         customer.set_id(id);
+        customerMongoTemplate.insert(customer);
+        return id;
+    }
+
+    public void saveCustomerCredentials(ObjectId objectId, Credentials credentials) {
+        credentials.set_id(objectId);
+        credentials.setAuthority(List.of(new SimpleGrantedAuthority(AccessLevel.CUSTOMER.name())));
         credentials.setPassword(bCryptPasswordEncoder.encode(credentials.getPassword()));
-        credentials.set_id(id);
-        contact.set_id(id);
-        customerCredentialsRepository.insert(credentials);
-        customerContactRepository.insert(contact);
-        customerRepository.insert(customer);
+        customerMongoTemplate.insert(credentials);
+    }
+
+    public void saveCustomerContact(ObjectId objectId, Contact contact) {
+        contact.set_id(objectId);
+        customerMongoTemplate.insert(contact);
+    }
+
+    public boolean verifyCustomer(ObjectId objectId) {
+        UpdateResult updateResult = customerMongoTemplate.updateFirst(
+                new Query(
+                        new Criteria()
+                                .andOperator(
+                                        Criteria.where("_id").is(objectId),
+                                        Criteria.where("isSystemAuthorized").is(false),
+                                        Criteria.where("isVisible").is(false)
+                                )
+                ),
+                new Update()
+                        .set("isSystemAuthorized", true)
+                        .set("isVisible", true),
+                Customer.class);
+        return updateResult.getMatchedCount() == 1;
+    }
+
+    public boolean isCustomer(ObjectId id) {
+        return customerMongoTemplate.findById(id, Customer.class) != null && customerMongoTemplate.findById(id, Credentials.class) != null && customerMongoTemplate.findById(id, Contact.class) != null;
+    }
+
+    public boolean isCustomerVerified(ObjectId id) {
+        return customerMongoTemplate.exists(
+                new Query(
+                        new Criteria()
+                                .andOperator(
+                                        Criteria.where("_id").is(id),
+                                        Criteria.where("isSystemAuthorized").is(true),
+                                        Criteria.where("isVisible").is(true)
+                                )
+                ), Customer.class);
+    }
+
+    public Credentials isCustomer(String userName) {
+        return customerMongoTemplate.findOne(new Query(Criteria.where("userName").is(userName)), Credentials.class);
     }
 
     public List<Customer> findAll() {
-        return customerRepository.findAll();
+        return customerMongoTemplate.findAll(Customer.class);
     }
 }
