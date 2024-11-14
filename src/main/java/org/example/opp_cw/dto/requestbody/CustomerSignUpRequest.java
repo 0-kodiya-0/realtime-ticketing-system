@@ -11,13 +11,10 @@ import org.example.opp_cw.model.Customer;
 @Data
 @NoArgsConstructor
 public class CustomerSignUpRequest {
-    @NotNull
     @Valid
     private Customer customer;
-    @NotNull
     @Valid
     private Credentials credentials;
-    @NotNull
     @Valid
     private Contact contact;
 }
