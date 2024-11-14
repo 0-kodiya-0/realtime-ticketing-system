@@ -1,5 +1,6 @@
 package org.example.opp_cw.model;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,9 @@ import org.bson.types.ObjectId;
 import org.example.opp_cw.annotation.IsObjectIdValid;
 import org.example.opp_cw.dto.userdetails.Person;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.List;
 
 @Document
 @Data
