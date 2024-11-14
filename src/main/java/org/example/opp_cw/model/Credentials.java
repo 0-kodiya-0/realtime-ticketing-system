@@ -8,7 +8,7 @@ import org.example.opp_cw.annotation.IsPasswordValid;
 import org.example.opp_cw.annotation.IsUserNameValid;
 import org.example.opp_cw.dto.RandomSecureCode;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.util.List;
 
@@ -23,6 +23,8 @@ public class Credentials {
     private String password;
 
     private List<RandomSecureCode> backUpCodes;
+
+    private List<GrantedAuthority> authority;
 
     public void setPassword(@IsPasswordValid String password) {
         this.password = password;

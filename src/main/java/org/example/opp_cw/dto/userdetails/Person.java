@@ -10,6 +10,7 @@ import org.example.opp_cw.annotation.ValueOfEnum;
 import org.example.opp_cw.enums.Gender;
 import org.example.opp_cw.enums.Nationality;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.time.LocalDate;
 import java.time.Period;
