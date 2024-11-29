@@ -12,7 +12,8 @@ public class Ticket {
     private String title;
     private String description;
     private int price;
-    private int ticketIssuerCount;
+    private int maxTicketCount;
+    private int boughtTicketCount;
     @ValueOfEnum(enumClass = TicketCategory.class)
     private String ticketCategory;
 }
