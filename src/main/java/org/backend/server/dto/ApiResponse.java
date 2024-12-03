@@ -30,9 +30,4 @@ public class ApiResponse {
     public ResponseEntity<ApiResponse> createResponse() {
         return new ResponseEntity<>(this, status);
     }
-
-    public void setError(String details) {
-        this.details = new HashMap<>();
-        this.details.put("message", details);
-    }
 }
