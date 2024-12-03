@@ -5,6 +5,7 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;
 import lombok.Getter;
 import lombok.Setter;
+import org.backend.server.microservices.authorization.models.Credentials;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,6 +50,11 @@ public class AuthenticationToken implements Authentication {
     @Override
     public Object getCredentials() {
         return credentials;
+    }
+
+    public void clearCredentialsPassword() {
+        Credentials credentials = (Credentials) this.credentials;
+        credentials.setPassword(null);
     }
 
     @Override
