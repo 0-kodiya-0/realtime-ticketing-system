@@ -14,7 +14,7 @@ public class ApiResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss")
     private final LocalDateTime timestamp = LocalDateTime.now();
     private HttpStatus status;
-    private Map<String, String> details;
+    private Map<String, Object> details;
 
     public ApiResponse(HttpStatus status, String details) {
         this.status = status;
@@ -22,7 +22,7 @@ public class ApiResponse {
         this.details.put("message", details);
     }
 
-    public ApiResponse(HttpStatus httpStatus, Map<String, String> details) {
+    public ApiResponse(HttpStatus httpStatus, Map<String, Object> details) {
         this.status = httpStatus;
         this.details = details;
     }
