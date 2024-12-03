@@ -40,7 +40,7 @@ public class ControllerExceptionHandler {
             String errorMessage = violation.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        return new ApiResponse(HttpStatus.BAD_REQUEST, errors).createResponse();
+        return new ApiResponse(HttpStatus.BAD_REQUEST, String.valueOf(errors)).createResponse();
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -51,6 +51,6 @@ public class ControllerExceptionHandler {
             String errorMessage = violation.getMessage();
             errors.put(fieldName, errorMessage);
         });
-        return new ApiResponse(HttpStatus.BAD_REQUEST, errors).createResponse();
+        return new ApiResponse(HttpStatus.BAD_REQUEST, String.valueOf(errors)).createResponse();
     }
 }
