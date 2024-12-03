@@ -7,6 +7,7 @@ import org.backend.server.microservices.authorization.configuration.JwtUtil;
 import org.backend.server.microservices.authorization.dto.LoginRequest;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
 import org.backend.server.microservices.authorization.models.Customer;
+import org.backend.server.microservices.authorization.models.Vendor;
 import org.backend.server.microservices.authorization.services.LoginService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,8 +42,8 @@ public class LoginController {
 
     @PostMapping("/vendor")
     public ResponseEntity<ApiResponse> vendorLogin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) throws AccountException {
-        loginService.loginVendor(loginRequest);
-        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken(AccessLevel.VENDOR.name(), "Customer successfully logged in"));
+        Vendor vendor = loginService.loginVendor(loginRequest);
+        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken(AccessLevel.VENDOR.name(), vendor.getCredentials().getUserName(), "Customer successfully logged in"));
         return new ApiResponse(HttpStatus.CREATED, "Token generate successfully").createResponse();
     }
 }
