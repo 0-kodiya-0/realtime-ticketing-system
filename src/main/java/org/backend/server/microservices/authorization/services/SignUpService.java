@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class SignUpService {
-    private CustomerService customerService;
-    private VendorService vendorService;
+    private final CustomerService customerService;
+    private final VendorService vendorService;
 
     public SignUpService(CustomerService customerService, VendorService vendorService) {
         this.customerService = customerService;

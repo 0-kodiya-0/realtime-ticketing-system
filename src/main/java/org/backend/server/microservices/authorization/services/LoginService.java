@@ -13,9 +13,9 @@ import javax.security.auth.login.AccountNotFoundException;
 @Service
 public class LoginService {
 
-    private CustomerService customerService;
-    private VendorService vendorService;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final CustomerService customerService;
+    private final VendorService vendorService;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public LoginService(CustomerService customerService, VendorService vendorService, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.customerService = customerService;

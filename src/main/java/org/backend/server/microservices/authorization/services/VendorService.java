@@ -13,8 +13,8 @@ import java.util.List;
 
 @Service
 public class VendorService implements UsersDetailsVerify {
-    private VendorRepository vendorRepository;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final VendorRepository vendorRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public VendorService(VendorRepository vendorRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.vendorRepository = vendorRepository;
