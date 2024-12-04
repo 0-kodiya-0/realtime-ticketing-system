@@ -4,6 +4,7 @@ import jakarta.validation.Constraint;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.Payload;
+import lombok.NoArgsConstructor;
 
 import java.lang.annotation.*;
 
@@ -21,35 +22,4 @@ public @interface IsRegexValid {
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
-}
-
-class IsRegexValidator implements ConstraintValidator<IsRegexValid, String> {
-
-    String regexp;
-    boolean isNullable;
-    String isNullMessage = "must not be null";
-
-    @Override
-    public void initialize(IsRegexValid constraintAnnotation) {
-        regexp = constraintAnnotation.regexp();
-        isNullable = constraintAnnotation.isNullable();
-    }
-
-    private void reBuildConstraintValidatorContext(ConstraintValidatorContext context) {
-        context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(isNullMessage).addConstraintViolation();
-    }
-
-    @Override
-    public boolean isValid(String strValue, ConstraintValidatorContext context) {
-        if (isNullable) {
-            reBuildConstraintValidatorContext(context);
-            return strValue == null || strValue.matches(regexp);
-        }
-        if (strValue == null) {
-            reBuildConstraintValidatorContext(context);
-            return false;
-        }
-        return !(strValue.isBlank()) && strValue.matches(regexp);
-    }
 }
