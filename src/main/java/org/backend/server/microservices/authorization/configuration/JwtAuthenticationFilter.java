@@ -1,34 +1,34 @@
 package org.backend.server.microservices.authorization.configuration;
 
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.MissingClaimException;
+import io.jsonwebtoken.*;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.backend.server.dto.ApiResponse;
 import org.backend.server.microservices.authorization.dto.AuthenticationToken;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.io.InvalidClassException;
 
-@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
         this.jwtUtil = jwtUtil;
+        this.authenticationManager = authenticationManager;
     }
 
-    public boolean checkAccessLevelsExists(String accessLevel) {
+    public boolean checkAccessLevelsExists(AccessLevel accessLevel) {
         for (AccessLevel accessLevelEnum : AccessLevel.values()) {
-            if (accessLevelEnum.equals(AccessLevel.valueOf(accessLevel))) {
+            if (accessLevelEnum.equals(accessLevel)) {
                 return true;
             }
         }
@@ -42,17 +42,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        String jwt = authHeader.substring(7);
-        Jws<?> rawJwt = jwtUtil.extractToken(jwt);
-        AuthenticationToken authenticationToken = new AuthenticationToken(jwt, rawJwt);
-        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        if (authenticationToken.getAccessLevel() == null) {
-            throw new MissingClaimException(rawJwt.getHeader(), authenticationToken.getClaims(), "ACCESS_LEVEL is missing");
-        } else if (checkAccessLevelsExists(authenticationToken.getAccessLevel())) {
-            throw new InvalidClassException("ACCESS_LEVEL is invalid");
-        } else {
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            filterChain.doFilter(request, response);
+        try {
+            String jwt = authHeader.substring(7);
+            Jws<?> rawJwt = jwtUtil.extractToken(jwt);
+            AuthenticationToken authenticationToken = new AuthenticationToken(jwt, rawJwt);
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            if (authenticationToken.getAccessLevel() == null) {
+                throw new MissingClaimException(rawJwt.getHeader(), authenticationToken.getClaims(), "ACCESS_LEVEL is missing");
+            } else if (!checkAccessLevelsExists(authenticationToken.getAccessLevel())) {
+                throw new IncorrectClaimException(rawJwt.getHeader(), authenticationToken.getClaims(), "ACCESS_LEVEL is invalid");
+            } else {
+                SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(authenticationToken));
+                filterChain.doFilter(request, response);
+            }
+        } catch (JwtException e) {
+            System.out.println(e);
+            ApiResponse apiResponse = new ApiResponse(HttpStatus.FORBIDDEN, e.getMessage());
+            response.setStatus(apiResponse.getStatus().value());
+            response.setContentType("application/json");
+            response.getWriter().write(apiResponse.createJsonResponse());
         }
     }
 }

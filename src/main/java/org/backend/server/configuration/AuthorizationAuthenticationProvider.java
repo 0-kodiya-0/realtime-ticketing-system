@@ -11,9 +11,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
 
-@Component
 public class AuthorizationAuthenticationProvider implements AuthenticationProvider {
 
     private final CustomerService customerService;
@@ -43,24 +41,25 @@ public class AuthorizationAuthenticationProvider implements AuthenticationProvid
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         if (authentication instanceof AuthenticationToken authenticationToken) {
-            if (authenticationToken.getAccessLevel().equals(AccessLevel.SIGNUP.name())) {
+            if (authenticationToken.getAccessLevel().equals(AccessLevel.SIGNUP)) {
                 authenticationToken.addAuthorities(AccessLevel.SIGNUP.name());
-            } else if (authenticationToken.getAccessLevel().equals(AccessLevel.LOGIN.name())) {
+            } else if (authenticationToken.getAccessLevel().equals(AccessLevel.LOGIN)) {
                 authenticationToken.addAuthorities(AccessLevel.LOGIN.name());
-            } else if (authenticationToken.getAccessLevel().equals(AccessLevel.CUSTOMER.name())) {
+            } else if (authenticationToken.getAccessLevel().equals(AccessLevel.CUSTOMER)) {
                 Customer customer = customerCredentialCheck(authenticationToken.getName());
                 authenticationToken.setCredentials(customer.getCredentials());
                 authenticationToken.setAuthorities(customer.getCredentials().getAuthority());
                 customer.setCredentials(null);
                 authenticationToken.setPrincipal(customer);
-            } else if (authenticationToken.getAccessLevel().equals(AccessLevel.VENDOR.name())) {
+                authenticationToken.clearCredentialsPassword();
+            } else if (authenticationToken.getAccessLevel().equals(AccessLevel.VENDOR)) {
                 Vendor vendor = vendorCredentialCheck(authenticationToken.getUserName());
                 authenticationToken.setCredentials(vendor.getCredentials());
                 authenticationToken.setAuthorities(vendor.getCredentials().getAuthority());
                 vendor.setCredentials(null);
                 authenticationToken.setPrincipal(vendor);
+                authenticationToken.clearCredentialsPassword();
             }
-            authenticationToken.clearCredentialsPassword();
             authenticationToken.setAuthenticated(true);
             return authenticationToken;
         }

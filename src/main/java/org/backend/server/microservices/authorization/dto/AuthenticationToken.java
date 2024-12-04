@@ -5,11 +5,13 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jws;
 import lombok.Getter;
 import lombok.Setter;
+import org.backend.server.microservices.authorization.enums.AccessLevel;
 import org.backend.server.microservices.authorization.models.Credentials;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 @Getter
@@ -18,7 +20,7 @@ public class AuthenticationToken implements Authentication {
     private String token;
     private Header<?> tokenHeader;
     private Claims claims;
-    private String accessLevel;
+    private AccessLevel accessLevel;
     private String userName;
     private Object principal;
     private Object credentials;
@@ -30,8 +32,9 @@ public class AuthenticationToken implements Authentication {
         this.token = token;
         this.tokenHeader = rawToken.getHeader();
         this.claims = (Claims) rawToken.getBody();
-        this.accessLevel = claims.get("ACCESS_LEVEL", String.class);
+        this.accessLevel = AccessLevel.valueOf(claims.get("ACCESS_LEVEL", String.class));
         this.userName = claims.get("USER_NAME", String.class);
+        authorities = new ArrayList<>();
     }
 
     @Override

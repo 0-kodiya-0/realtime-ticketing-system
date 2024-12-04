@@ -1,5 +1,6 @@
 package org.backend.server.exceptions;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolationException;
 import org.backend.server.dto.ApiResponse;
 import org.springframework.core.Ordered;
@@ -17,8 +18,8 @@ import java.util.Map;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice(basePackages = {
-        "org.backend.server.ticketpool.controller",
-        "org.backend.server.authorization.controller"
+        "org.backend.server.microservices.ticketpool.controller",
+        "org.backend.server.microservices.authorization.controller"
 })
 public class ControllerExceptionHandler {
 
@@ -29,6 +30,11 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(AccountException.class)
     public ResponseEntity<ApiResponse> handleAccountException(AccountException ex) {
+        return new ApiResponse(HttpStatus.UNAUTHORIZED, ex.getMessage()).createResponse();
+    }
+
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse> handleJwtException(JwtException ex) {
         return new ApiResponse(HttpStatus.UNAUTHORIZED, ex.getMessage()).createResponse();
     }
 
