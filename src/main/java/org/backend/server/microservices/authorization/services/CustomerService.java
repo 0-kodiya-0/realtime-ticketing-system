@@ -3,13 +3,17 @@ package org.backend.server.microservices.authorization.services;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
 import org.backend.server.microservices.authorization.models.Customer;
 import org.backend.server.microservices.authorization.repository.CustomerRepository;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.security.auth.login.AccountException;
-import javax.security.auth.login.AccountNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CustomerService implements UsersDetailsVerify {
@@ -24,66 +28,51 @@ public class CustomerService implements UsersDetailsVerify {
     public void save(Customer customer) {
         customer.getCredentials().setAuthority(List.of(new SimpleGrantedAuthority(AccessLevel.CUSTOMER.name())));
         customer.getCredentials().setPassword(bCryptPasswordEncoder.encode(customer.getCredentials().getPassword()));
-        customerRepository.save(customer);
-    }
-
-    public Customer findCustomer(String username) {
-        return customerRepository.findByCredentialsUserNameContaining(username);
-    }
-
-    public Customer findCustomer(Long id) {
-        return customerRepository.findById(id).orElse(null);
-    }
-
-    @Override
-    public boolean exists(String username) {
-        return customerRepository.existsByCredentialsUserNameContaining(username);
-    }
-
-    @Override
-    public boolean exists(Long id) {
-        return customerRepository.existsById(id);
-    }
-
-    @Override
-    public boolean isVerified(String username) throws AccountException {
-        Customer customer = findCustomer(username);
-        if (customer == null) {
-            throw new AccountException("Verified customer not found");
-        }
-        return customer.isVisible() && customer.isSystemAuthorized() && customer.isDeleted();
-    }
-
-    @Override
-    public boolean isVerified(Long id) throws AccountNotFoundException {
-        Customer customer = findCustomer(id);
-        if (customer == null) {
-            throw new AccountNotFoundException("Verified customer not found");
-        }
-        return customer.isVisible() && customer.isSystemAuthorized() && customer.isDeleted();
-    }
-
-    @Override
-    public void verifyUser(String username) throws AccountException {
-        Customer customer = customerRepository.findByCredentialsUserNameContaining(username);
-        verifyUser(customer);
-    }
-
-    @Override
-    public void verifyUser(Long id) throws AccountException {
-        Customer customer = customerRepository.findById(id).orElse(null);
-        verifyUser(customer);
-    }
-
-    private void verifyUser(Customer customer) throws AccountException {
-        if (customer == null) {
-            throw new AccountNotFoundException("Customer not found");
-        }
-        if (customer.isDeleted() || customer.isSystemAuthorized() || customer.isVisible()) {
-            throw new AccountException("Customer already verified");
-        }
         customer.setVisible(true);
         customer.setSystemAuthorized(true);
         customerRepository.save(customer);
     }
+
+    @Transactional(readOnly = true)
+    public Customer findCustomer(String username) {
+        Customer customer = customerRepository.findByCredentialsUserName(username);
+        if (customer == null) {
+            return null;
+        }
+        customer.getCredentials().getAuthority();
+        return customer;
+    }
+
+    public Customer findCustomer(long id) {
+        return customerRepository.findById(id).orElse(null);
+    }
+
+    public Collection<String> updateAuthorities(long id, String... authorities) {
+        Customer customer = findCustomer(id);
+        Collection<String> grantedAuthorities = customer.getCredentials().getAuthorityAsString();
+        grantedAuthorities.addAll(Arrays.asList(authorities));
+        customer.getCredentials().setAuthorityAsString(grantedAuthorities);
+        return grantedAuthorities;
+    }
+
+    @Override
+    public boolean exists(String username) {
+        return customerRepository.existsByCredentialsUserName(username);
+    }
+
+    @Override
+    public boolean exists(long id) {
+        return customerRepository.existsById(id);
+    }
+
+    @Override
+    public boolean isVerified(String username) {
+        return customerRepository.existsByCredentialsUserNameAndVisibleTrueAndSystemAuthorizedTrueAndDeletedFalse(username);
+    }
+
+    @Override
+    public boolean isVerified(long id) {
+        return customerRepository.existsByIdAndVisibleTrueAndSystemAuthorizedTrueAndDeletedFalse(id);
+    }
+
 }
