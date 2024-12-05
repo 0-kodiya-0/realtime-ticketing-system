@@ -29,7 +29,7 @@ public class PurchaseService {
     }
 
     public List<Purchase> findAllExpiredPendingPurchases() {
-        LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(15);
+        LocalDateTime cutoffTime = LocalDateTime.now().minusMinutes(5);
         return purchaseRepository.findByPurchaseStatusAndCreatedAtAfter(PurchaseStatus.PENDING, Date.from(cutoffTime.atZone(ZoneId.systemDefault()).toInstant()));
     }
 
@@ -42,6 +42,7 @@ public class PurchaseService {
         if (purchase.getPurchaseStatus() != PurchaseStatus.PENDING) {
             throw new EntityNotFoundException("Purchase status is not PENDING");
         }
+        pendingPurchase.setPurchaseDate(new Date());
         pendingPurchase.setPurchaseStatus(PurchaseStatus.PURCHASED);
         purchaseRepository.save(purchase);
     }
