@@ -19,6 +19,7 @@ public class ScheduledProcessesService {
 
     @Scheduled(fixedRate = 60000) // Run every minute
     protected void cleanupPendingPurchases() {
+        System.out.println("Cleaning up pending purchases ...");
         List<Purchase> expiredPendingPurchases = purchaseService.findAllExpiredPendingPurchases();
         expiredPendingPurchases.forEach(purchase -> {
             ticketService.updateTicketBoughtQuantity(purchase.getTicket().getId(), false);
