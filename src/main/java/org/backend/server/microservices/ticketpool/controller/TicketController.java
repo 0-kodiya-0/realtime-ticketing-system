@@ -25,7 +25,7 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
-    @GetMapping("/getAll")
+    @GetMapping("/get/all")
     @ResponseStatus(HttpStatus.OK)
     public List<Ticket> getAllTickets() {
         return ticketService.findAllTickets();
@@ -33,20 +33,22 @@ public class TicketController {
 
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> addTicket(@Valid @RequestBody Ticket ticket) {
-        ticketService.saveTicket(ticket);
+        AuthenticationToken authenticationToken = (AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        ticketService.saveTicket((Customer) authenticationToken.getPrincipal(), ticket);
         return new ApiResponse(HttpStatus.OK, "Ticket added successfully").createResponse();
     }
 
     @GetMapping("/remove/{ticketId}")
     public ResponseEntity<ApiResponse> removeTicket(@PathVariable Long ticketId) {
-        ticketService.removeTicket(ticketId);
-        return new ApiResponse(HttpStatus.NO_CONTENT, "Ticket removed successfully").createResponse();
+        AuthenticationToken authenticationToken = (AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+        ticketService.removeTicket((Customer) authenticationToken.getPrincipal(), ticketId);
+        return new ApiResponse(HttpStatus.OK, "Ticket removed successfully").createResponse();
     }
 
     @GetMapping("/que/{ticketId}")
     public ResponseEntity<ApiResponse> queTicket(@PathVariable Long ticketId) {
         AuthenticationToken authenticationToken = (AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        Purchase purchase = ticketService.queTicket(ticketId, (Customer) authenticationToken.getPrincipal());
+        Purchase purchase = ticketService.queTicket((Customer) authenticationToken.getPrincipal(), ticketId);
         return new ApiResponse(HttpStatus.CREATED, Map.of("purchase", purchase.getId())).createResponse();
     }
 
@@ -54,7 +56,6 @@ public class TicketController {
     public ResponseEntity<ApiResponse> buyTicket(@PathVariable Long purchaseId) throws IllegalAccessException {
         AuthenticationToken authenticationToken = (AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         Purchase purchase = ticketService.purchaseTicket(purchaseId, (Customer) authenticationToken.getPrincipal());
-        purchase.setCustomer(null);
-        return new ApiResponse(HttpStatus.OK, Map.of("purchase", purchase)).createResponse();
+        return new ApiResponse(HttpStatus.OK, "Ticket id " + purchase.getTicket().getId() + " bought at " + purchase.getPurchaseDate()).createResponse();
     }
 }

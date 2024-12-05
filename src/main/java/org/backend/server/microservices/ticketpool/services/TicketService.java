@@ -3,6 +3,8 @@ package org.backend.server.microservices.ticketpool.services;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
 import org.backend.server.microservices.authorization.models.Customer;
+import org.backend.server.microservices.authorization.models.Vendor;
+import org.backend.server.microservices.authorization.services.VendorService;
 import org.backend.server.microservices.ticketpool.enums.PurchaseStatus;
 import org.backend.server.microservices.ticketpool.models.Purchase;
 import org.backend.server.microservices.ticketpool.models.Ticket;
@@ -17,10 +19,12 @@ import java.util.List;
 public class TicketService {
     private final TicketRepository ticketRepository;
     private final PurchaseService purchaseService;
+    private final VendorService vendorService;
 
-    public TicketService(TicketRepository ticketRepository, PurchaseService purchaseService) {
+    public TicketService(TicketRepository ticketRepository, PurchaseService purchaseService, VendorService vendorService) {
         this.ticketRepository = ticketRepository;
         this.purchaseService = purchaseService;
+        this.vendorService = vendorService;
     }
 
     public List<Ticket> findAllTickets() {
@@ -31,13 +35,19 @@ public class TicketService {
         return ticketRepository.findByIdAndVisibleAndDeleted(ticketId, true, false);
     }
 
-    public void saveTicket(Ticket ticket) {
+    public void saveTicket(Customer customer, Ticket ticket) {
+        Vendor vendor = vendorService.findVendor(customer.getId());
+        ticket.setVendor(vendor);
         ticket.setVisible(true);
         ticketRepository.save(ticket);
     }
 
-    public void removeTicket(Long id) {
-        Ticket ticket = findTicket(id);
+    public void removeTicket(Customer customer, Long id) {
+        Vendor vendor = vendorService.findVendor(customer.getId());
+        Ticket ticket = ticketRepository.findByIdAndVendorAndVisibleAndDeleted(id, vendor, true, false);
+        if (ticket == null) {
+            throw new EntityNotFoundException("Ticket with id " + id + " not found or do not belong to you");
+        }
         ticket.setDeleted(true);
         ticketRepository.save(ticket);
     }
@@ -65,16 +75,7 @@ public class TicketService {
     }
 
     @Transactional
-    public Purchase queTicket(Long ticketId, Customer customer) {
-        Purchase pendingPurchase = queTicket(ticketId);
-        pendingPurchase.setCustomer(customer);
-        pendingPurchase.setPurchaseStatus(PurchaseStatus.PENDING);
-        purchaseService.savePendingPurchase(pendingPurchase);
-        return pendingPurchase;
-    }
-
-    @Transactional
-    protected Purchase queTicket(Long ticketId) {
+    public Purchase queTicket(Customer customer, Long ticketId) {
         Purchase pendingPurchase = new Purchase();
         Ticket ticket = findTicket(ticketId);
         if (ticket == null) {
@@ -84,6 +85,10 @@ public class TicketService {
             throw new IllegalArgumentException("Ticket not available to be bought");
         }
         pendingPurchase.setTicket(ticket);
+        pendingPurchase.setCustomer(customer);
+        pendingPurchase.setPurchaseStatus(PurchaseStatus.PENDING);
+        purchaseService.savePendingPurchase(pendingPurchase);
+        updateTicketBoughtQuantity(ticket.getId(), true);
         return pendingPurchase;
     }
 
@@ -95,14 +100,6 @@ public class TicketService {
         }
         if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !(pendingPurchase.getCustomer().getId() == customer.getId())) {
             throw new IllegalAccessException("Pending purchase not accepted");
-        }
-        return purchaseTicket(purchaseId, pendingPurchase);
-    }
-
-    @Transactional
-    protected Purchase purchaseTicket(Long purchaseId, Purchase pendingPurchase) {
-        if (checkTicketBoughtQuantityExceeded(pendingPurchase.getTicket().getId())) {
-            throw new IllegalArgumentException("Ticket purchase count exceeded");
         }
         purchaseService.savePurchase(pendingPurchase);
         Purchase savePurchase = purchaseService.findPurchase(purchaseId);
