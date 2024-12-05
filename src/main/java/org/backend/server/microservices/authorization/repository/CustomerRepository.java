@@ -11,11 +11,11 @@ import java.util.Optional;
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
     boolean existsByCredentialsUserName(String userName);
 
+    boolean existsByIdAndVisibleTrueAndSystemAuthorizedTrueAndDeletedFalse(long id);
+
+    boolean existsByCredentialsUserNameAndVisibleTrueAndSystemAuthorizedTrueAndDeletedFalse(String userName);
+
     Customer findByCredentialsUserName(String userName);
 
-    Optional<Customer> findById(Long id);
-
-    @Modifying
-    @Query("UPDATE Customer e SET e.credentials.authority = ?2  WHERE e.id = ?1")
-    int updateByIdAndCredentialsAuthority(Long id, List<String> authority);
+    Optional<Customer> findById(long id);
 }
