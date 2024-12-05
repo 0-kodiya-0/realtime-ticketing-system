@@ -10,8 +10,8 @@ import java.util.Optional;
 
 @Service
 public class PurchaseService {
-    private PurchaseRepository purchaseRepository;
-    private ArrayList<Purchase> purchasePendingPool = new ArrayList<>();
+    private final PurchaseRepository purchaseRepository;
+    private final ArrayList<Purchase> purchasePendingPool = new ArrayList<>();
 
     public PurchaseService(PurchaseRepository purchaseRepository) {
         this.purchaseRepository = purchaseRepository;

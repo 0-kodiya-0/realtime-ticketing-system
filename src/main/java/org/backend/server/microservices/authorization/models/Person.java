@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.backend.server.annotations.IsRegexValid;
 import org.backend.server.microservices.authorization.enums.Gender;
 
 import java.time.LocalDate;
@@ -15,18 +16,21 @@ import java.time.Period;
 public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
     @NotNull
     @Column(nullable = false)
+    @IsRegexValid(regexp = "^[a-z]{3,10}$")
     private String name;
 
     @NotNull
     @Column(nullable = false)
+    @IsRegexValid(regexp = "^[a-z]{3,10}$")
     private String surname;
 
     @NotNull
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private Gender gender;
 
     @NotNull
@@ -34,10 +38,11 @@ public class Person {
     private LocalDate dateOfBirth;
 
     @Column(nullable = false)
-    private int age;
+    private Integer age;
 
     @NotNull
     @Column(nullable = false)
+    @IsRegexValid(regexp = "^[a-z0-9]+$")
     private String nic;
 
     @Embedded
@@ -49,6 +54,12 @@ public class Person {
     @Embedded
     @Column(nullable = false)
     private Contact contact;
+
+    @NotNull
+    @Valid
+    @Embedded
+    @Column(nullable = false)
+    private Credentials credentials;
 
     @Column(name = "isSystemAuthorized", nullable = false)
     private boolean systemAuthorized = false;

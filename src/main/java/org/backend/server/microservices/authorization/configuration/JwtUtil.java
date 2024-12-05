@@ -50,7 +50,7 @@ public class JwtUtil {
         return (Claims) token.getBody();
     }
 
-    public String buildToken(
+    private String buildToken(
             Map<String, Object> extraClaims,
             String subject
     ) {
@@ -64,14 +64,14 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String buildToken(String accessLevel, String subject) {
+    public String buildToken(String subject, String... accessLevel) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("TOKEN_ID", bytesKeyGenerator.generateKey());
         claims.put("ACCESS_LEVEL", accessLevel);
         return buildToken(claims, subject);
     }
 
-    public String buildToken(String accessLevel, String username, String subject) {
+    public String buildTokenWithUsername(String username, String subject, String... accessLevel) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("TOKEN_ID", bytesKeyGenerator.generateKey());
         claims.put("ACCESS_LEVEL", accessLevel);

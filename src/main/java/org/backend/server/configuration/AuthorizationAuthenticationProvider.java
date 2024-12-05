@@ -2,61 +2,51 @@ package org.backend.server.configuration;
 
 import org.backend.server.microservices.authorization.dto.AuthenticationToken;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
-import org.backend.server.microservices.authorization.models.Credentials;
+import org.backend.server.microservices.authorization.models.Customer;
 import org.backend.server.microservices.authorization.services.CustomerService;
 import org.backend.server.microservices.authorization.services.VendorService;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
 
-import java.util.List;
-
-@Component
 public class AuthorizationAuthenticationProvider implements AuthenticationProvider {
 
     private final CustomerService customerService;
-    private final VendorService vendorService;
 
-    public AuthorizationAuthenticationProvider(CustomerService customerService, VendorService vendorService) {
+    public AuthorizationAuthenticationProvider(CustomerService customerService) {
         this.customerService = customerService;
-        this.vendorService = vendorService;
     }
 
-    public List<GrantedAuthority> customerCredentialCheck(String userName) throws UsernameNotFoundException {
-        Credentials credentials = customerService.findCustomer(userName).getCredentials();
-        if (credentials == null) {
+    public Customer customerCredentialCheck(String userName) throws UsernameNotFoundException {
+        Customer customer = customerService.findCustomer(userName);
+        if (customer == null) {
             throw new UsernameNotFoundException("Invalid username");
         }
-        return credentials.getAuthority();
-    }
-
-    public List<GrantedAuthority> vendorCredentialCheck(String userName) throws UsernameNotFoundException {
-        Credentials credentials = vendorService.findVendor(userName).getCredentials();
-        if (credentials == null) {
-            throw new UsernameNotFoundException("Invalid username");
-        }
-        return credentials.getAuthority();
+        return customer;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         if (authentication instanceof AuthenticationToken authenticationToken) {
-            if (authenticationToken.getAccessLevel().equals(AccessLevel.SIGNUP.name())) {
+            if (authenticationToken.getAccessLevel().contains(AccessLevel.SIGNUP)) {
                 authenticationToken.addAuthorities(AccessLevel.SIGNUP.name());
-            } else if (authenticationToken.getAccessLevel().equals(AccessLevel.LOGIN.name())) {
+            } else if (authenticationToken.getAccessLevel().contains(AccessLevel.LOGIN)) {
                 authenticationToken.addAuthorities(AccessLevel.LOGIN.name());
-            } else if (authenticationToken.getAccessLevel().equals(AccessLevel.CUSTOMER.name())) {
-                authenticationToken.setAuthorities(customerCredentialCheck(authenticationToken.getUserName()));
-            } else if (authenticationToken.getAccessLevel().equals(AccessLevel.VENDOR.name())) {
-                authenticationToken.setAuthorities(vendorCredentialCheck(authenticationToken.getUserName()));
+            } else if (authenticationToken.getAccessLevel().contains(AccessLevel.CUSTOMER)) {
+                Customer customer = customerCredentialCheck(authenticationToken.getName());
+                authenticationToken.setCredentials(customer.getCredentials());
+                authenticationToken.setAuthorities(customer.getCredentials().getAuthority());
+                customer.setCredentials(null);
+                authenticationToken.setPrincipal(customer);
+                authenticationToken.clearCredentialsPassword();
             }
+            authenticationToken.setAuthenticated(true);
             return authenticationToken;
         }
-        throw new AuthorizationServiceException("Server error");
+        throw new AuthorizationDeniedException("Server error");
     }
 
     @Override

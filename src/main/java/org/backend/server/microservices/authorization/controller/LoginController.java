@@ -28,21 +28,14 @@ public class LoginController {
 
     @GetMapping
     public ResponseEntity<ApiResponse> getLoginToken(HttpServletResponse response) {
-        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken(AccessLevel.LOGIN.name(), "Login token"));
+        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken("Login token", AccessLevel.LOGIN.name()));
         return new ApiResponse(HttpStatus.CREATED, "Token generate successfully").createResponse();
     }
 
     @PostMapping("/customer")
     public ResponseEntity<ApiResponse> customerLogin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) throws AccountException {
         Customer customer = loginService.loginCustomer(loginRequest);
-        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken(AccessLevel.CUSTOMER.name(), customer.getCredentials().getUserName(), "Customer successfully logged in"));
-        return new ApiResponse(HttpStatus.CREATED, "Token generate successfully").createResponse();
-    }
-
-    @PostMapping("/vendor")
-    public ResponseEntity<ApiResponse> vendorLogin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) throws AccountException {
-        loginService.loginVendor(loginRequest);
-        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken(AccessLevel.VENDOR.name(), "Customer successfully logged in"));
+        response.addHeader("Authorization", "Bearer " + jwtUtil.buildTokenWithUsername(customer.getCredentials().getUserName(), "Customer successfully logged in", AccessLevel.CUSTOMER.name()));
         return new ApiResponse(HttpStatus.CREATED, "Token generate successfully").createResponse();
     }
 }

@@ -9,28 +9,19 @@ import org.backend.server.microservices.ticketpool.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.security.auth.login.AccountException;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class TicketService {
     private final CustomerService customerService;
-    private TicketRepository ticketRepository;
-    private PurchaseService purchaseService;
+    private final TicketRepository ticketRepository;
+    private final PurchaseService purchaseService;
 
     public TicketService(TicketRepository ticketRepository, PurchaseService purchaseService, CustomerService customerService) {
         this.ticketRepository = ticketRepository;
         this.purchaseService = purchaseService;
         this.customerService = customerService;
-    }
-
-    public void addTicket(Ticket ticket) {
-        ticketRepository.save(ticket);
-    }
-
-    public void removeTicket(Ticket ticket) {
-        ticketRepository.delete(ticket);
     }
 
     public List<Ticket> getAllTickets() {
@@ -49,13 +40,41 @@ public class TicketService {
         return ticket.getQuantity() <= ticket.getBoughtQuantity();
     }
 
+    public void addTicket(Ticket ticket) {
+        ticketRepository.save(ticket);
+    }
+
+    public void removeTicket(Long id) {
+        Ticket ticket = getTicket(id);
+        ticket.setDeleted(true);
+        ticketRepository.save(ticket);
+    }
+
     public void updateTicketBoughtQuantity(Ticket ticket) {
         ticket.setBoughtQuantity(ticket.getBoughtQuantity() + ticket.getQuantity());
         ticketRepository.save(ticket);
     }
 
     @Transactional
-    public Purchase queTicket(Long ticketId, Long customerId) throws AccountException {
+    public Purchase queTicket(Long ticketId, String customerId) {
+        Customer customer = customerService.findCustomer(customerId);
+        Purchase pendingPurchase = queTicket(ticketId);
+        pendingPurchase.setCustomer(customer);
+        pendingPurchase.setPurchaseStatus(PurchaseStatus.PENDING);
+        purchaseService.addPendingPurchase(pendingPurchase);
+        return pendingPurchase;
+    }
+
+    @Transactional
+    public Purchase queTicket(Long ticketId, Customer customer) {
+        Purchase pendingPurchase = queTicket(ticketId);
+        pendingPurchase.setCustomer(customer);
+        pendingPurchase.setPurchaseStatus(PurchaseStatus.PENDING);
+        purchaseService.addPendingPurchase(pendingPurchase);
+        return pendingPurchase;
+    }
+
+    private Purchase queTicket(Long ticketId) {
         Purchase pendingPurchase = new Purchase();
         Ticket ticket = getTicket(ticketId);
         if (ticket == null) {
@@ -65,10 +84,6 @@ public class TicketService {
             throw new RuntimeException("Ticket not available to be bought");
         }
         pendingPurchase.setTicket(ticket);
-        Customer customer = customerService.findCustomer(customerId);
-        pendingPurchase.setCustomer(customer);
-        pendingPurchase.setPurchaseStatus(PurchaseStatus.PENDING);
-        purchaseService.addPendingPurchase(pendingPurchase);
         return pendingPurchase;
     }
 
@@ -78,9 +93,25 @@ public class TicketService {
         if (pendingPurchase == null) {
             throw new RuntimeException("Pending purchase not found");
         }
-        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !pendingPurchase.getCustomer().getId().equals(customerId)) {
+        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !(pendingPurchase.getCustomer().getId() == customerId)) {
             throw new RuntimeException("Pending purchase not accepted");
         }
+        return purchaseTicket(purchaseId, pendingPurchase);
+    }
+
+    @Transactional
+    public Purchase purchaseTicket(Long purchaseId, Customer customer) {
+        Purchase pendingPurchase = purchaseService.getPendingPurchase(purchaseId);
+        if (pendingPurchase == null) {
+            throw new RuntimeException("Pending purchase not found");
+        }
+        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !(pendingPurchase.getCustomer().getId() == customer.getId())) {
+            throw new RuntimeException("Pending purchase not accepted");
+        }
+        return purchaseTicket(purchaseId, pendingPurchase);
+    }
+
+    private Purchase purchaseTicket(Long purchaseId, Purchase pendingPurchase) {
         if (checkTicketBoughtQuantityExceeded(pendingPurchase.getTicket().getTicketId())) {
             throw new RuntimeException("Ticket purchase count exceeded");
         }

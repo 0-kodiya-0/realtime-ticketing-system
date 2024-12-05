@@ -7,14 +7,17 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.backend.server.annotations.IsRegexValid;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Embeddable
 @Data
 public class Credentials {
     @NotNull
-    @IsRegexValid(regexp = "^[a-zA-Z0-9@_*.]+$")
+    @IsRegexValid(regexp = "^[a-zA-Z0-9@_*.]{5,20}$")
     @Column(nullable = false, unique = true)
     private String userName;
 
@@ -22,8 +25,23 @@ public class Credentials {
     @Column(nullable = false, unique = true)
     private String password;
 
-    @NotNull
     @Column(nullable = false)
     @ElementCollection
-    private List<GrantedAuthority> authority;
+    private Collection<String> authority;
+
+    public Collection<? extends GrantedAuthority> getAuthority() {
+        return authority.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public void setAuthority(@NotNull final Collection<GrantedAuthority> authority) {
+        this.authority = authority.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    public Collection<String> getAuthorityAsString() {
+        return this.authority;
+    }
+
+    public void setAuthorityAsString(@NotNull final Collection<String> authority) {
+        this.authority = authority;
+    }
 }
