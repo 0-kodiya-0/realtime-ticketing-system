@@ -4,7 +4,6 @@ import org.backend.server.microservices.authorization.configuration.JwtAuthentic
 import org.backend.server.microservices.authorization.configuration.JwtUtil;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
 import org.backend.server.microservices.authorization.services.CustomerService;
-import org.backend.server.microservices.authorization.services.VendorService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -23,12 +22,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class EndpointsSecurityConfiguration {
 
     private final CustomerService customerService;
-    private final VendorService vendorService;
     private final JwtUtil jwtUtil;
 
-    public EndpointsSecurityConfiguration(CustomerService customerService, VendorService vendorService, JwtUtil jwtUtil) {
+    public EndpointsSecurityConfiguration(CustomerService customerService, JwtUtil jwtUtil) {
         this.customerService = customerService;
-        this.vendorService = vendorService;
         this.jwtUtil = jwtUtil;
     }
 
@@ -39,7 +36,7 @@ public class EndpointsSecurityConfiguration {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        return new AuthorizationAuthenticationProvider(customerService, vendorService);
+        return new AuthorizationAuthenticationProvider(customerService);
     }
 
     @Bean
@@ -54,6 +51,7 @@ public class EndpointsSecurityConfiguration {
                 .securityMatcher("/signup/**", "/login/**", "/ticket/**")
                 .authorizeHttpRequests((req) -> req
                         .requestMatchers("/signup", "/login").permitAll()
+                        .requestMatchers("/signup/becomevendor").hasAuthority(AccessLevel.CUSTOMER.name())
                         .requestMatchers("/signup/**").hasAuthority(AccessLevel.SIGNUP.name())
                         .requestMatchers("/login/**").hasAuthority(AccessLevel.LOGIN.name())
                         .requestMatchers("/ticket").denyAll()

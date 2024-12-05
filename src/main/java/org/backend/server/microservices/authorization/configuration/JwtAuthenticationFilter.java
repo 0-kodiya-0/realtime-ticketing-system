@@ -26,15 +26,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.authenticationManager = authenticationManager;
     }
 
-    public boolean checkAccessLevelsExists(AccessLevel accessLevel) {
-        for (AccessLevel accessLevelEnum : AccessLevel.values()) {
-            if (accessLevelEnum.equals(accessLevel)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException, ExpiredJwtException {
         final String authHeader = request.getHeader("Authorization");
@@ -49,14 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             if (authenticationToken.getAccessLevel() == null) {
                 throw new MissingClaimException(rawJwt.getHeader(), authenticationToken.getClaims(), "ACCESS_LEVEL is missing");
-            } else if (!checkAccessLevelsExists(authenticationToken.getAccessLevel())) {
-                throw new IncorrectClaimException(rawJwt.getHeader(), authenticationToken.getClaims(), "ACCESS_LEVEL is invalid");
-            } else {
+            }  else {
                 SecurityContextHolder.getContext().setAuthentication(authenticationManager.authenticate(authenticationToken));
                 filterChain.doFilter(request, response);
             }
         } catch (JwtException e) {
-            System.out.println(e);
             ApiResponse apiResponse = new ApiResponse(HttpStatus.FORBIDDEN, e.getMessage());
             response.setStatus(apiResponse.getStatus().value());
             response.setContentType("application/json");
