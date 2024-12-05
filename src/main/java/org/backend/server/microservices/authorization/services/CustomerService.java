@@ -3,17 +3,14 @@ package org.backend.server.microservices.authorization.services;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
 import org.backend.server.microservices.authorization.models.Customer;
 import org.backend.server.microservices.authorization.repository.CustomerRepository;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CustomerService implements UsersDetailsVerify {

@@ -1,5 +1,6 @@
 package org.backend.server.configuration;
 
+import org.backend.server.microservices.authorization.configuration.AuthorizationAuthenticationProvider;
 import org.backend.server.microservices.authorization.configuration.JwtAuthenticationFilter;
 import org.backend.server.microservices.authorization.configuration.JwtUtil;
 import org.backend.server.microservices.authorization.enums.AccessLevel;

@@ -1,11 +1,9 @@
-package org.backend.server.configuration;
+package org.backend.server.microservices.authorization.configuration;
 
 import org.backend.server.microservices.authorization.dto.AuthenticationToken;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
 import org.backend.server.microservices.authorization.models.Customer;
 import org.backend.server.microservices.authorization.services.CustomerService;
-import org.backend.server.microservices.authorization.services.VendorService;
-import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;

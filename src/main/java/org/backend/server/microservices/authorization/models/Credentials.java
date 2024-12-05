@@ -33,7 +33,7 @@ public class Credentials {
         return authority.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toCollection(ArrayList::new));
     }
 
-    public void setAuthority(@NotNull final Collection<GrantedAuthority> authority) {
+    public void setAuthority(Collection<GrantedAuthority> authority) {
         this.authority = authority.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toCollection(ArrayList::new));
     }
 
@@ -41,7 +41,7 @@ public class Credentials {
         return this.authority;
     }
 
-    public void setAuthorityAsString(@NotNull final Collection<String> authority) {
+    public void setAuthorityAsString(Collection<String> authority) {
         this.authority = authority;
     }
 }
