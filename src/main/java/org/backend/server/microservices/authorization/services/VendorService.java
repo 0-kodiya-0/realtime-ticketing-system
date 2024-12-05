@@ -17,6 +17,10 @@ public class VendorService {
         vendorRepository.save(vendor);
     }
 
+    public Vendor findVendor(long id) {
+        return vendorRepository.findById(id);
+    }
+
     public boolean exists(long id) {
         return vendorRepository.existsById(id);
     }
