@@ -7,14 +7,15 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.backend.server.annotations.IsRegexValid;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.List;
+import java.util.Collection;
 
 @Embeddable
 @Data
 public class Credentials {
     @NotNull
-    @IsRegexValid(regexp = "^[a-zA-Z0-9@_*.]+$")
+    @IsRegexValid(regexp = "^[a-zA-Z0-9@_*.]{5,20}$")
     @Column(nullable = false, unique = true)
     private String userName;
 
@@ -25,5 +26,13 @@ public class Credentials {
     @NotNull
     @Column(nullable = false)
     @ElementCollection
-    private List<GrantedAuthority> authority;
+    private Collection<String> authority;
+
+    public @NotNull Collection<? extends GrantedAuthority> getAuthority() {
+        return authority.stream().map(SimpleGrantedAuthority::new).toList();
+    }
+
+    public void setAuthority(@NotNull final Collection<GrantedAuthority> authority) {
+        this.authority = authority.stream().map(GrantedAuthority::getAuthority).toList();
+    }
 }
