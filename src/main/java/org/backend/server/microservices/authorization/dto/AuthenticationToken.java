@@ -13,6 +13,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -20,7 +22,7 @@ public class AuthenticationToken implements Authentication {
     private String token;
     private Header<?> tokenHeader;
     private Claims claims;
-    private AccessLevel accessLevel;
+    private List<AccessLevel> accessLevel;
     private String userName;
     private Object principal;
     private Object credentials;
@@ -32,14 +34,26 @@ public class AuthenticationToken implements Authentication {
         this.token = token;
         this.tokenHeader = rawToken.getHeader();
         this.claims = (Claims) rawToken.getBody();
-        this.accessLevel = AccessLevel.valueOf(claims.get("ACCESS_LEVEL", String.class));
         this.userName = claims.get("USER_NAME", String.class);
         authorities = new ArrayList<>();
+        accessLevel = new ArrayList<>();
+        Object object = claims.get("ACCESS_LEVEL");
+        if (object instanceof Collection) {
+            accessLevel = ((Collection<?>) object).stream()
+                    .map(source -> AccessLevel.valueOf(source.toString()))
+                    .collect(Collectors.toList());
+        } else if (object instanceof String) {
+            accessLevel.add(AccessLevel.valueOf(((String) object)));
+        }
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
+    }
+
+    public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        this.authorities = authorities.stream().map(authority -> (GrantedAuthority) authority).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public void addAuthorities(GrantedAuthority authorities) {
