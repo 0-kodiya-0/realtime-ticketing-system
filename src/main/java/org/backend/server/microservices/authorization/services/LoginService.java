@@ -15,10 +15,12 @@ import javax.security.auth.login.AccountNotFoundException;
 public class LoginService {
 
     private final CustomerService customerService;
+    private final VendorService vendorService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public LoginService(CustomerService customerService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public LoginService(CustomerService customerService, VendorService vendorService, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.customerService = customerService;
+        this.vendorService = vendorService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
@@ -35,5 +37,11 @@ public class LoginService {
             throw new BadCredentialsException("Invalid credentials");
         }
         return customer;
+    }
+
+    public void loginVendor(Customer customer) throws AccountException {
+        if (!vendorService.exists(customer.getId())) {
+            throw new AccountNotFoundException("Vendor not linked to customer");
+        }
     }
 }

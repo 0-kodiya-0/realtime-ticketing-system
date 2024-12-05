@@ -1,9 +1,9 @@
 package org.backend.server.microservices.authorization.services;
 
 import jakarta.persistence.EntityExistsException;
-import org.backend.server.microservices.authorization.dto.BecomeVendorRequest;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
 import org.backend.server.microservices.authorization.models.Customer;
+import org.backend.server.microservices.authorization.models.Vendor;
 import org.springframework.security.authentication.password.CompromisedPasswordException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,14 +34,11 @@ public class SignUpService {
     }
 
     @Transactional
-    public Collection<String> signupVendor(BecomeVendorRequest becomeVendorRequest) throws NullPointerException, AccountNotFoundException {
-        if (!customerService.isVerified(becomeVendorRequest.getCustomerId())) {
-            throw new AccountNotFoundException("Customer not found or not verified");
-        }
-        if (vendorService.exists(becomeVendorRequest.getCustomerId())) {
+    public void signupVendor(Vendor vendor, Customer customer) throws NullPointerException, AccountNotFoundException {
+        if (vendorService.exists(customer.getId())) {
             throw new EntityExistsException("Vendor assigned to customer already exists");
         }
-        vendorService.save(becomeVendorRequest.getVendor());
-        return customerService.updateAuthorities(becomeVendorRequest.getCustomerId(), AccessLevel.VENDOR.name()).getCredentials().getAuthorityAsString();
+        vendorService.save(vendor);
+        customerService.updateAuthorities(customer.getId(), AccessLevel.VENDOR.name());
     }
 }

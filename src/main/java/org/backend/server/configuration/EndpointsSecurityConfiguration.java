@@ -5,6 +5,7 @@ import org.backend.server.microservices.authorization.configuration.JwtAuthentic
 import org.backend.server.microservices.authorization.configuration.JwtUtil;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
 import org.backend.server.microservices.authorization.services.CustomerService;
+import org.backend.server.microservices.authorization.services.VendorService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -23,9 +24,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class EndpointsSecurityConfiguration {
 
     private final CustomerService customerService;
+    private final VendorService vendorService;
     private final JwtUtil jwtUtil;
 
-    public EndpointsSecurityConfiguration(CustomerService customerService, JwtUtil jwtUtil) {
+    public EndpointsSecurityConfiguration(CustomerService customerService, VendorService vendorService, JwtUtil jwtUtil) {
+        this.vendorService = vendorService;
         this.customerService = customerService;
         this.jwtUtil = jwtUtil;
     }
@@ -37,7 +40,7 @@ public class EndpointsSecurityConfiguration {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        return new AuthorizationAuthenticationProvider(customerService);
+        return new AuthorizationAuthenticationProvider(customerService, vendorService);
     }
 
     @Bean
@@ -54,11 +57,12 @@ public class EndpointsSecurityConfiguration {
                         .requestMatchers("/signup", "/login").permitAll()
                         .requestMatchers("/signup/becomevendor").hasAuthority(AccessLevel.CUSTOMER.name())
                         .requestMatchers("/signup/**").hasAuthority(AccessLevel.SIGNUP.name())
+                        .requestMatchers("/login/becomevendor").hasAuthority(AccessLevel.CUSTOMER.name())
                         .requestMatchers("/login/**").hasAuthority(AccessLevel.LOGIN.name())
-                        .requestMatchers("/ticket").denyAll()
-                        .requestMatchers("/ticket/add", "/ticket/remove").hasAuthority(AccessLevel.VENDOR.name())
+                        .requestMatchers("/ticket/add", "/ticket/remove").hasAnyAuthority(AccessLevel.VENDOR.name())
                         .requestMatchers("/ticket/buy", "ticket/que").hasAuthority(AccessLevel.CUSTOMER.name())
                         .requestMatchers("/ticket/get/**").hasAnyAuthority(AccessLevel.CUSTOMER.name(), AccessLevel.VENDOR.name())
+                        .requestMatchers("/ticket").denyAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement((session) -> {
