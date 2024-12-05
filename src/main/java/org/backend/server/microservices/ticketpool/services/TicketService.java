@@ -9,8 +9,6 @@ import org.backend.server.microservices.ticketpool.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.security.auth.login.AccountException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -95,7 +93,7 @@ public class TicketService {
         if (pendingPurchase == null) {
             throw new RuntimeException("Pending purchase not found");
         }
-        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !pendingPurchase.getCustomer().getId().equals(customerId)) {
+        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !(pendingPurchase.getCustomer().getId() == customerId)) {
             throw new RuntimeException("Pending purchase not accepted");
         }
         return purchaseTicket(purchaseId, pendingPurchase);
@@ -107,7 +105,7 @@ public class TicketService {
         if (pendingPurchase == null) {
             throw new RuntimeException("Pending purchase not found");
         }
-        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !pendingPurchase.getCustomer().getId().equals(customer.getId())) {
+        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !(pendingPurchase.getCustomer().getId() == customer.getId())) {
             throw new RuntimeException("Pending purchase not accepted");
         }
         return purchaseTicket(purchaseId, pendingPurchase);
