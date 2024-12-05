@@ -28,18 +28,26 @@ public class Purchase {
     @JoinColumn(referencedColumnName = "id", nullable = false, updatable = false)
     private Customer customer;
 
-    @NotNull
-    @Column(nullable = false, updatable = false)
     private Date purchaseDate;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private PurchaseStatus purchaseStatus;
 
     @Column(nullable = false, updatable = false)
     private Date createdAt;
 
+    @Column(nullable = false)
+    private Date updatedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = new Date();
+        updatedAt = createdAt;  // Set updatedAt to createdAt initially
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = new Date();  // Update the updatedAt field on update
     }
 }

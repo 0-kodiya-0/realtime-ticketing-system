@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.backend.server.annotations.IsRegexValid;
 import org.backend.server.microservices.authorization.models.Vendor;
 import org.backend.server.microservices.ticketpool.enums.TicketCategory;
 
@@ -18,16 +20,17 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @NotNull
     @Valid
     @ManyToOne(targetEntity = Vendor.class)
     @JoinColumn(referencedColumnName = "id", nullable = false, updatable = false)
     private Vendor vendor;
 
     @NotNull
+    @IsRegexValid(regexp = "^[a-zA-Z\s]{3,15}$")
     @Column(nullable = false)
     private String title;
 
+    @Size(min = 10, max = 100)
     private String description;
 
     @NotNull
@@ -37,7 +40,7 @@ public class Ticket {
 
     @NotNull
     @Column(nullable = false)
-    @Min(value = 1)
+    @Min(value = 5)
     private int quantity;
 
     @Column(nullable = false, columnDefinition = "INTEGER CHECK (quantity >= 0)")
@@ -46,9 +49,9 @@ public class Ticket {
 
     @NotNull
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private TicketCategory category;
 
-    @NotNull
     @Column(nullable = false)
     @ElementCollection
     private List<String> imageUrl;
