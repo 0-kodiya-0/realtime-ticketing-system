@@ -3,6 +3,7 @@ package org.backend.server.microservices.authorization.services;
 import jakarta.persistence.EntityExistsException;
 import org.backend.server.microservices.authorization.dto.BecomeVendorRequest;
 import org.backend.server.microservices.authorization.enums.AccessLevel;
+import org.backend.server.microservices.authorization.exception.PasswordValidationException;
 import org.backend.server.microservices.authorization.models.Customer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,13 @@ public class SignUpService {
 
     @Transactional
     public void signupCustomer(Customer customer) throws NullPointerException {
+        if (customerService.exists(customer.getCredentials().getUserName())) {
+            throw new EntityExistsException("Customer already exists");
+        }
+
+        if (!customer.getCredentials().getPassword().matches("^[a-zA-Z0-9@_*.]{5,20}$")) {
+            throw new PasswordValidationException("double check the format");
+        }
         customerService.save(customer);
     }
 

@@ -1,6 +1,7 @@
 package org.backend.server.microservices.authorization.services;
 
 import org.backend.server.microservices.authorization.dto.LoginRequest;
+import org.backend.server.microservices.authorization.exception.PasswordValidationException;
 import org.backend.server.microservices.authorization.models.Customer;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +27,9 @@ public class LoginService {
         Customer customer = customerService.findCustomer(loginRequest.getCredentials().getUserName());
         if (customer == null || !customer.isSystemAuthorized() || !customer.isVisible() || customer.isDeleted()) {
             throw new AccountNotFoundException("Invalid customer details");
+        }
+        if (!loginRequest.getCredentials().getPassword().matches("^[a-zA-Z0-9@_*.]{5,20}$")) {
+            throw new PasswordValidationException("double check the format");
         }
         if (!bCryptPasswordEncoder.matches(loginRequest.getCredentials().getPassword(), customer.getCredentials().getPassword())) {
             throw new BadCredentialsException("Invalid credentials");
