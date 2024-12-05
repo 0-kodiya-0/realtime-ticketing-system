@@ -1,68 +1,67 @@
 package org.backend.server.microservices.ticketpool.services;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.LockModeType;
 import org.backend.server.microservices.authorization.models.Customer;
-import org.backend.server.microservices.authorization.services.CustomerService;
 import org.backend.server.microservices.ticketpool.enums.PurchaseStatus;
 import org.backend.server.microservices.ticketpool.models.Purchase;
 import org.backend.server.microservices.ticketpool.models.Ticket;
 import org.backend.server.microservices.ticketpool.repository.TicketRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TicketService {
-    private final CustomerService customerService;
     private final TicketRepository ticketRepository;
     private final PurchaseService purchaseService;
 
-    public TicketService(TicketRepository ticketRepository, PurchaseService purchaseService, CustomerService customerService) {
+    public TicketService(TicketRepository ticketRepository, PurchaseService purchaseService) {
         this.ticketRepository = ticketRepository;
         this.purchaseService = purchaseService;
-        this.customerService = customerService;
     }
 
-    public List<Ticket> getAllTickets() {
-        return ticketRepository.findAllByVisibleTrueAndDeletedFalseOrderByCreatedAtAsc();
+    public List<Ticket> findAllTickets() {
+        return ticketRepository.findAllByVisibleAndDeleted(true, false);
     }
 
-    public Ticket getTicket(Long ticketId) {
-        return ticketRepository.findByTicketIdAndVisibleTrue(ticketId).orElse(null);
+    public Ticket findTicket(Long ticketId) {
+        return ticketRepository.findByIdAndVisibleAndDeleted(ticketId, true, false);
     }
 
-    public boolean checkTicketBoughtQuantityExceeded(Long ticketId) {
-        Ticket ticket = getTicket(ticketId);
-        if (ticket == null) {
-            throw new RuntimeException("Ticket not found");
-        }
-        return ticket.getQuantity() <= ticket.getBoughtQuantity();
-    }
-
-    public void addTicket(Ticket ticket) {
+    public void saveTicket(Ticket ticket) {
+        ticket.setVisible(true);
         ticketRepository.save(ticket);
     }
 
     public void removeTicket(Long id) {
-        Ticket ticket = getTicket(id);
+        Ticket ticket = findTicket(id);
         ticket.setDeleted(true);
         ticketRepository.save(ticket);
     }
 
-    public void updateTicketBoughtQuantity(Ticket ticket) {
-        ticket.setBoughtQuantity(ticket.getBoughtQuantity() + ticket.getQuantity());
-        ticketRepository.save(ticket);
+    public boolean checkTicketBoughtQuantityExceeded(Long ticketId) {
+        Ticket ticket = findTicket(ticketId);
+        if (ticket == null) {
+            throw new EntityNotFoundException("Ticket not found");
+        }
+        return ticket.getQuantity() <= ticket.getBoughtQuantity();
     }
 
-    @Transactional
-    public Purchase queTicket(Long ticketId, String customerId) {
-        Customer customer = customerService.findCustomer(customerId);
-        Purchase pendingPurchase = queTicket(ticketId);
-        pendingPurchase.setCustomer(customer);
-        pendingPurchase.setPurchaseStatus(PurchaseStatus.PENDING);
-        purchaseService.addPendingPurchase(pendingPurchase);
-        return pendingPurchase;
+    @Transactional(timeout = 10)
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    public void updateTicketBoughtQuantity(long id, boolean increaseBoughtQuantity) {
+        Ticket ticket = findTicket(id);
+        synchronized (ticket) {
+            if (increaseBoughtQuantity) {
+                ticket.setBoughtQuantity(ticket.getBoughtQuantity() + 1);
+            } else {
+                ticket.setBoughtQuantity(ticket.getBoughtQuantity() - 1);
+            }
+            ticketRepository.save(ticket);
+        }
     }
 
     @Transactional
@@ -70,58 +69,47 @@ public class TicketService {
         Purchase pendingPurchase = queTicket(ticketId);
         pendingPurchase.setCustomer(customer);
         pendingPurchase.setPurchaseStatus(PurchaseStatus.PENDING);
-        purchaseService.addPendingPurchase(pendingPurchase);
+        purchaseService.savePendingPurchase(pendingPurchase);
         return pendingPurchase;
     }
 
-    private Purchase queTicket(Long ticketId) {
+    @Transactional
+    protected Purchase queTicket(Long ticketId) {
         Purchase pendingPurchase = new Purchase();
-        Ticket ticket = getTicket(ticketId);
+        Ticket ticket = findTicket(ticketId);
         if (ticket == null) {
-            throw new RuntimeException("Ticket not found");
+            throw new EntityNotFoundException("Ticket not found");
         }
         if (ticket.getQuantity() <= ticket.getBoughtQuantity()) {
-            throw new RuntimeException("Ticket not available to be bought");
+            throw new IllegalArgumentException("Ticket not available to be bought");
         }
         pendingPurchase.setTicket(ticket);
         return pendingPurchase;
     }
 
     @Transactional
-    public Purchase purchaseTicket(Long purchaseId, Long customerId) {
-        Purchase pendingPurchase = purchaseService.getPendingPurchase(purchaseId);
+    public Purchase purchaseTicket(Long purchaseId, Customer customer) throws IllegalAccessException {
+        Purchase pendingPurchase = purchaseService.findPendingPurchase(purchaseId);
         if (pendingPurchase == null) {
-            throw new RuntimeException("Pending purchase not found");
+            throw new EntityNotFoundException("Pending purchase not found");
         }
-        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !(pendingPurchase.getCustomer().getId() == customerId)) {
-            throw new RuntimeException("Pending purchase not accepted");
+        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !(pendingPurchase.getCustomer().getId() == customer.getId())) {
+            throw new IllegalAccessException("Pending purchase not accepted");
         }
         return purchaseTicket(purchaseId, pendingPurchase);
     }
 
     @Transactional
-    public Purchase purchaseTicket(Long purchaseId, Customer customer) {
-        Purchase pendingPurchase = purchaseService.getPendingPurchase(purchaseId);
-        if (pendingPurchase == null) {
-            throw new RuntimeException("Pending purchase not found");
+    protected Purchase purchaseTicket(Long purchaseId, Purchase pendingPurchase) {
+        if (checkTicketBoughtQuantityExceeded(pendingPurchase.getTicket().getId())) {
+            throw new IllegalArgumentException("Ticket purchase count exceeded");
         }
-        if (pendingPurchase.getPurchaseStatus() != PurchaseStatus.PENDING || !(pendingPurchase.getCustomer().getId() == customer.getId())) {
-            throw new RuntimeException("Pending purchase not accepted");
+        purchaseService.savePurchase(pendingPurchase);
+        Purchase savePurchase = purchaseService.findPurchase(purchaseId);
+        if (savePurchase == null) {
+            throw new EntityNotFoundException("Saved purchase not found");
         }
-        return purchaseTicket(purchaseId, pendingPurchase);
-    }
-
-    private Purchase purchaseTicket(Long purchaseId, Purchase pendingPurchase) {
-        if (checkTicketBoughtQuantityExceeded(pendingPurchase.getTicket().getTicketId())) {
-            throw new RuntimeException("Ticket purchase count exceeded");
-        }
-        purchaseService.addPurchase(pendingPurchase);
-        Optional<Purchase> savePurchase = purchaseService.getPurchase(purchaseId);
-        if (savePurchase.isEmpty()) {
-            throw new RuntimeException("Saved purchase not found");
-        }
-        purchaseService.removePendingPurchase(pendingPurchase);
-        updateTicketBoughtQuantity(savePurchase.get().getTicket());
-        return savePurchase.get();
+        updateTicketBoughtQuantity(savePurchase.getTicket().getId(), true);
+        return savePurchase;
     }
 }

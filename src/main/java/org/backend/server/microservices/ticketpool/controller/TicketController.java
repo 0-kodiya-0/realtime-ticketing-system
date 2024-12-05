@@ -28,18 +28,18 @@ public class TicketController {
     @GetMapping("/getAll")
     @ResponseStatus(HttpStatus.OK)
     public List<Ticket> getAllTickets() {
-        return ticketService.getAllTickets();
+        return ticketService.findAllTickets();
     }
 
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> addTicket(@Valid @RequestBody Ticket ticket) {
-        ticketService.addTicket(ticket);
+        ticketService.saveTicket(ticket);
         return new ApiResponse(HttpStatus.OK, "Ticket added successfully").createResponse();
     }
 
-    @GetMapping("/remove/{id}")
-    public ResponseEntity<ApiResponse> removeTicket(@PathVariable Long id) {
-        ticketService.removeTicket(id);
+    @GetMapping("/remove/{ticketId}")
+    public ResponseEntity<ApiResponse> removeTicket(@PathVariable Long ticketId) {
+        ticketService.removeTicket(ticketId);
         return new ApiResponse(HttpStatus.NO_CONTENT, "Ticket removed successfully").createResponse();
     }
 
@@ -47,11 +47,11 @@ public class TicketController {
     public ResponseEntity<ApiResponse> queTicket(@PathVariable Long ticketId) {
         AuthenticationToken authenticationToken = (AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         Purchase purchase = ticketService.queTicket(ticketId, (Customer) authenticationToken.getPrincipal());
-        return new ApiResponse(HttpStatus.CREATED, Map.of("purchase", purchase.getPurchaseId())).createResponse();
+        return new ApiResponse(HttpStatus.CREATED, Map.of("purchase", purchase.getId())).createResponse();
     }
 
     @GetMapping("/buy/{purchaseId}")
-    public ResponseEntity<ApiResponse> buyTicket(@PathVariable Long purchaseId) {
+    public ResponseEntity<ApiResponse> buyTicket(@PathVariable Long purchaseId) throws IllegalAccessException {
         AuthenticationToken authenticationToken = (AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
         Purchase purchase = ticketService.purchaseTicket(purchaseId, (Customer) authenticationToken.getPrincipal());
         purchase.setCustomer(null);

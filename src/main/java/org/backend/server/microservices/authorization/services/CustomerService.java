@@ -44,12 +44,13 @@ public class CustomerService implements UsersDetailsVerify {
         return customerRepository.findById(id).orElse(null);
     }
 
-    public Collection<String> updateAuthorities(long id, String... authorities) {
+    public Customer updateAuthorities(long id, String... authorities) {
         Customer customer = findCustomer(id);
         Collection<String> grantedAuthorities = customer.getCredentials().getAuthorityAsString();
         grantedAuthorities.addAll(Arrays.asList(authorities));
         customer.getCredentials().setAuthorityAsString(grantedAuthorities);
-        return grantedAuthorities;
+        customerRepository.save(customer);
+        return customer;
     }
 
     @Override

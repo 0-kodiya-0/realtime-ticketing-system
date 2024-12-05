@@ -28,7 +28,8 @@ public class SignUpController {
 
     @GetMapping
     public ResponseEntity<ApiResponse> getSignupToken(HttpServletResponse response) {
-        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken("Signup token", AccessLevel.SIGNUP.name()));
+        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken(
+                "Signup token", AccessLevel.SIGNUP.name()));
         return new ApiResponse(HttpStatus.CREATED, "Token generate successfully").createResponse();
     }
 
@@ -41,7 +42,9 @@ public class SignUpController {
     @PostMapping("/becomevendor")
     public ResponseEntity<ApiResponse> vendorSignup(@Valid @RequestBody BecomeVendorRequest becomeVendorRequest, HttpServletResponse response) throws AccountNotFoundException {
         Collection<String> grandAuthorities = signUpService.signupVendor(becomeVendorRequest);
-        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken("Signup token", grandAuthorities.iterator().next()));
+        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken(
+                "Signup token",
+                grandAuthorities.iterator().next()));
         return new ApiResponse(HttpStatus.CREATED, "Vendor created successfully").createResponse();
     }
 }

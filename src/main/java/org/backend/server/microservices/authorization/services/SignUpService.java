@@ -42,6 +42,6 @@ public class SignUpService {
             throw new EntityExistsException("Vendor assigned to customer already exists");
         }
         vendorService.save(becomeVendorRequest.getVendor());
-        return customerService.updateAuthorities(becomeVendorRequest.getCustomerId(), AccessLevel.VENDOR.name());
+        return customerService.updateAuthorities(becomeVendorRequest.getCustomerId(), AccessLevel.VENDOR.name()).getCredentials().getAuthorityAsString();
     }
 }

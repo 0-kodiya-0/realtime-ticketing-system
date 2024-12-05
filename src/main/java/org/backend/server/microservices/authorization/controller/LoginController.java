@@ -10,6 +10,7 @@ import org.backend.server.microservices.authorization.models.Customer;
 import org.backend.server.microservices.authorization.services.LoginService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.auth.login.AccountException;
@@ -28,14 +29,18 @@ public class LoginController {
 
     @GetMapping
     public ResponseEntity<ApiResponse> getLoginToken(HttpServletResponse response) {
-        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken("Login token", AccessLevel.LOGIN.name()));
+        response.addHeader("Authorization", "Bearer " + jwtUtil.buildToken(
+                "Login token", AccessLevel.LOGIN.name()));
         return new ApiResponse(HttpStatus.CREATED, "Token generate successfully").createResponse();
     }
 
     @PostMapping("/customer")
     public ResponseEntity<ApiResponse> customerLogin(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) throws AccountException {
         Customer customer = loginService.loginCustomer(loginRequest);
-        response.addHeader("Authorization", "Bearer " + jwtUtil.buildTokenWithUsername(customer.getCredentials().getUserName(), "Customer successfully logged in", AccessLevel.CUSTOMER.name()));
+        response.addHeader("Authorization", "Bearer " + jwtUtil.buildTokenWithUsername(
+                customer.getCredentials().getUserName(),
+                "Customer successfully logged in",
+                customer.getCredentials().getAuthority().stream().map(GrantedAuthority::getAuthority).iterator().next()));
         return new ApiResponse(HttpStatus.CREATED, "Token generate successfully").createResponse();
     }
 }

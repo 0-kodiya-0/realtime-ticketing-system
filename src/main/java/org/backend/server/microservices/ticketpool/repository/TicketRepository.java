@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
-    List<Ticket> findAllByVisibleTrueAndDeletedFalseOrderByCreatedAtAsc();
-    Optional<Ticket> findByTicketIdAndVisibleTrue(Long ticketId);
+    List<Ticket> findAllByVisibleAndDeleted(boolean visible, boolean deleted);
+    Ticket findByIdAndVisibleAndDeleted(long id, boolean visible, boolean deleted);
 }

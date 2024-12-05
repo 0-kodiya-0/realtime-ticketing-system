@@ -8,7 +8,7 @@ import lombok.Data;
 import org.backend.server.microservices.authorization.models.Vendor;
 import org.backend.server.microservices.ticketpool.enums.TicketCategory;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -16,12 +16,12 @@ import java.util.List;
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long ticketId;
+    private long id;
 
     @NotNull
     @Valid
     @ManyToOne(targetEntity = Vendor.class)
-    @JoinColumn(name = "vendorId", referencedColumnName = "id", nullable = false, updatable = false)
+    @JoinColumn(referencedColumnName = "id", nullable = false, updatable = false)
     private Vendor vendor;
 
     @NotNull
@@ -60,19 +60,19 @@ public class Ticket {
     private boolean deleted = false;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private Date createdAt;
 
     @Column(nullable = false)
-    private LocalDateTime updatedAt;
+    private Date updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        createdAt = new Date();
         updatedAt = createdAt;  // Set updatedAt to createdAt initially
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();  // Update the updatedAt field on update
+        updatedAt = new Date();  // Update the updatedAt field on update
     }
 }
