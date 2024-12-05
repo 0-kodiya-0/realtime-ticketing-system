@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.password.CompromisedPasswordException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -25,6 +26,11 @@ public class AuthServiceExceptionHandler {
         return new ApiResponse(HttpStatus.UNAUTHORIZED, ex.getMessage()).createResponse();
     }
 
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleUsernameNotFoundException(UsernameNotFoundException ex) {
+        return new ApiResponse(HttpStatus.BAD_REQUEST, ex.getMessage()).createResponse();
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse> handleBadCredentialsException(BadCredentialsException ex) {
         return new ApiResponse(HttpStatus.BAD_REQUEST, ex.getMessage()).createResponse();
@@ -33,16 +39,6 @@ public class AuthServiceExceptionHandler {
     @ExceptionHandler(JwtException.class)
     public ResponseEntity<ApiResponse> handleJwtException(JwtException ex) {
         return new ApiResponse(HttpStatus.UNAUTHORIZED, ex.getMessage()).createResponse();
-    }
-
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ApiResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
-        return new ApiResponse(HttpStatus.NOT_FOUND, ex.getMessage()).createResponse();
-    }
-
-    @ExceptionHandler(EntityExistsException.class)
-    public ResponseEntity<ApiResponse> handleEntityExistsException(EntityExistsException ex) {
-        return new ApiResponse(HttpStatus.CONFLICT, ex.getMessage()).createResponse();
     }
 
     @ExceptionHandler(CompromisedPasswordException.class)

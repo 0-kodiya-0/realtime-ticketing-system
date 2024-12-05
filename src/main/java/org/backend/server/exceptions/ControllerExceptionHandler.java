@@ -1,5 +1,7 @@
 package org.backend.server.exceptions;
 
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.backend.server.dto.ApiResponse;
 import org.springframework.core.annotation.Order;
@@ -23,6 +25,16 @@ public class ControllerExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         return new ApiResponse(HttpStatus.BAD_REQUEST, ex.getMessage()).createResponse();
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
+        return new ApiResponse(HttpStatus.NOT_FOUND, ex.getMessage()).createResponse();
+    }
+
+    @ExceptionHandler(EntityExistsException.class)
+    public ResponseEntity<ApiResponse> handleEntityExistsException(EntityExistsException ex) {
+        return new ApiResponse(HttpStatus.CONFLICT, ex.getMessage()).createResponse();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
