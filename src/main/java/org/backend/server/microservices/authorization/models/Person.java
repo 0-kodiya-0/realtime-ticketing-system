@@ -21,7 +21,7 @@ public class Person {
     @NotNull
     @Column(nullable = false)
     @IsRegexValid(regexp = "^[a-z]{3,10}$")
-    private String name;
+    private String firstname;
 
     @NotNull
     @Column(nullable = false)
