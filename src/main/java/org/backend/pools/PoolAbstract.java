@@ -2,10 +2,12 @@ package org.backend.pools;
 
 import lombok.Getter;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
 public abstract class PoolAbstract {
+    protected final ConcurrentLinkedQueue<Object> inUseObjects = new ConcurrentLinkedQueue<>();
     private final ReentrantLock lock = new ReentrantLock();
     private final int poolMaxCapacity;
     private int poolUsedCapacity = 0;
@@ -14,18 +16,20 @@ public abstract class PoolAbstract {
         this.poolMaxCapacity = poolMaxCapacity;
     }
 
-    public void increasePoolUsedCapacity() {
+    public void increasePoolUsedCapacity(Object object) {
         lock.lock();
         try {
+            inUseObjects.add(object);
             poolUsedCapacity++;
         } finally {
             lock.unlock();
         }
     }
 
-    public void decreasePoolUsedCapacity() {
+    public void decreasePoolUsedCapacity(Object object) {
         lock.lock();
         try {
+            inUseObjects.remove(object);
             poolUsedCapacity--;
         } finally {
             lock.unlock();

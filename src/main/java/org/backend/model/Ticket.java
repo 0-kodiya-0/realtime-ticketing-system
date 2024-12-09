@@ -1,6 +1,7 @@
 package org.backend.model;
 
 import lombok.Data;
+import org.backend.dto.DataToDto;
 import org.backend.dto.TicketDto;
 import org.backend.enums.TicketCategory;
 
@@ -9,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 @Data
-public class Ticket {
+public class Ticket implements DataToDto<TicketDto> {
     private final Vendor vendor;
     private final TicketCategory category;
     private final long quantity;
@@ -48,7 +49,8 @@ public class Ticket {
         }
     }
 
-    public TicketDto toDto(){
+    @Override
+    public TicketDto toDto() {
         TicketDto dto = new TicketDto();
         dto.setId(id);
         dto.setVendor(vendor.toDto());

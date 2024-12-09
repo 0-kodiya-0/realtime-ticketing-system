@@ -1,12 +1,13 @@
 package org.backend.model;
 
 import lombok.Data;
+import org.backend.dto.DataToDto;
 import org.backend.dto.VendorDto;
 
 import java.util.UUID;
 
 @Data
-public class Vendor {
+public class Vendor implements DataToDto<VendorDto> {
     private final String id;
     private boolean isDeleted = false;
 
@@ -20,6 +21,7 @@ public class Vendor {
         }
     }
 
+    @Override
     public VendorDto toDto() {
         VendorDto dto = new VendorDto();
         dto.setId(this.id);

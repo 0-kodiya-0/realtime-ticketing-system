@@ -1,8 +1,9 @@
 package org.backend.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class VendorDto {
-    private String id;
+@EqualsAndHashCode(callSuper = true)
+public class VendorDto extends Dto {
 }

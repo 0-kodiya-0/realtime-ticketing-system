@@ -1,16 +1,17 @@
 package org.backend.services;
 
-import org.backend.output.JsonWriter;
 import org.backend.enums.EventTypes;
 import org.backend.event.*;
 import org.backend.model.Customer;
 import org.backend.model.Purchase;
 import org.backend.model.Ticket;
+import org.backend.output.JsonWriter;
 import org.backend.pools.PurchasePool;
 import org.backend.pools.TicketPool;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class CustomerSimulation extends SimulationAbstract {
@@ -29,7 +30,7 @@ public class CustomerSimulation extends SimulationAbstract {
         this.customer = customer;
         this.ticketPool = ticketPool;
         this.purchasePool = purchasePool;
-        eventPublisher.publish(new CustomerEvent(customer, EventTypes.QUE_TICKET, new EventMessage("Customer added successfully")));
+        eventPublisher.publish(new CustomerEvent(customer, EventTypes.QUE_TICKET, new EventMessage("Thread added successfully")));
     }
 
     private EventListener<VendorEvent> configureEvent() {
@@ -50,11 +51,11 @@ public class CustomerSimulation extends SimulationAbstract {
     }
 
     private void simulatePaying(String id, Customer customer) {
-        boolean bought = ticketPool.buyTicket(id, customer);
-        if (bought) {
-            eventPublisher.publish(new CustomerEvent(customer, EventTypes.BUY_TICKET, new EventMessage("Ticket buy successful")));
+        Purchase purchase = ticketPool.buyTicket(id, customer);
+        if (purchase != null) {
+            eventPublisher.publish(new CustomerEvent(customer, EventTypes.BUY_TICKET, new EventMessage("Ticket buy successful", Map.of("purchase", purchase))));
         } else {
-            eventPublisher.publish(new CustomerEvent(customer, EventTypes.BUY_TICKET, new EventMessage("Ticket buy failed")));
+            eventPublisher.publish(new CustomerEvent(customer, EventTypes.BUY_TICKET_FAILED, new EventMessage("Ticket buy failed")));
         }
     }
 
@@ -67,12 +68,12 @@ public class CustomerSimulation extends SimulationAbstract {
                 }
             }
             for (Ticket ticket : new ArrayList<>(newlyAddedTickets)) {
-                String purchaseId = ticketPool.queTicket(ticket.getId(), customer);
-                if (purchaseId != null) {
-                    eventPublisher.publish(new CustomerEvent(customer, EventTypes.QUE_TICKET, new EventMessage("Ticket que successfully")));
-                    simulatePaying(purchaseId, customer);
+                Purchase purchase = ticketPool.queTicket(ticket.getId(), customer);
+                if (purchase != null) {
+                    eventPublisher.publish(new CustomerEvent(customer, EventTypes.QUE_TICKET, new EventMessage("Ticket que successfully", Map.of("ticket", ticket, "que", purchase))));
+                    simulatePaying(purchase.getId(), customer);
                 } else {
-                    eventPublisher.publish(new CustomerEvent(customer, EventTypes.QUE_TICKET, new EventMessage("Ticket que failed")));
+                    eventPublisher.publish(new CustomerEvent(customer, EventTypes.QUE_TICKET_FAILED, new EventMessage("Ticket que failed", Map.of("ticket", ticket))));
                 }
                 synchronized (newlyAddedTickets) {
                     newlyAddedTickets.remove(ticket);
@@ -84,12 +85,15 @@ public class CustomerSimulation extends SimulationAbstract {
 
     private List<Purchase> removeCustomerPurchases() {
         List<Purchase> removedPurchases = new ArrayList<>();
-        for (Purchase purchase : purchasePool.getInUsePurchaseHistory()) {
+        for (Object obj : purchasePool.getInUseObjects()) {
+            Purchase purchase = (Purchase) obj;
             if (purchasePool.removePurchase(purchase.getId(), customer)) {
                 removedPurchases.add(purchase);
+            } else {
+                eventPublisher.publish(new CustomerEvent(customer, EventTypes.REMOVE_PURCHASE_FAILED, new EventMessage("Purchases removing failed", Map.of("purchase", purchase))));
             }
         }
-        eventPublisher.publish(new CustomerEvent(customer, EventTypes.REMOVE_TICKET, new EventMessage("Purchases removing successfully")));
+        eventPublisher.publish(new CustomerEvent(customer, EventTypes.REMOVE_PURCHASE, new EventMessage("Purchases removing successfully")));
         return removedPurchases;
     }
 
@@ -103,7 +107,7 @@ public class CustomerSimulation extends SimulationAbstract {
     @Override
     public void stop() {
         clearMem();
-        eventPublisher.publish(new CustomerEvent(customer, EventTypes.REMOVED_THREAD));
+        eventPublisher.publish(new CustomerEvent(customer, EventTypes.REMOVED_THREAD, new EventMessage("Thread removed successfully")));
     }
 
     @Override

@@ -11,7 +11,7 @@ public abstract class UserInputAbstract {
         int attempts = 0;
         while (attempts < MAX_ATTEMPTS) {
             try {
-                System.out.println(prompt + " (between " + minValue + " and " + maxValue + "): ");
+                System.out.println(prompt + " (only between " + minValue + " and " + maxValue + "): ");
                 String input = scanner.nextLine().trim();
                 if (input.isEmpty()) {
                     throw new IllegalArgumentException("Input cannot be empty");
@@ -64,5 +64,11 @@ public abstract class UserInputAbstract {
         }
         System.out.println("Maximum number of attempts reached. Program will now exit.");
         return null;
+    }
+
+    protected static boolean isEnterKeyPressed(String prompt) {
+        System.out.println(prompt);
+        scanner.nextLine();
+        return true;
     }
 }

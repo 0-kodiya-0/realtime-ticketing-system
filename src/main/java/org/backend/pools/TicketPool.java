@@ -8,16 +8,13 @@ import org.backend.model.Ticket;
 import org.backend.model.Vendor;
 
 import java.util.Date;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Getter
 public class TicketPool extends PoolAbstract {
-    private final ConcurrentLinkedQueue<Ticket> inUseTickets;
     private final PurchasePool purchasePool;
 
     public TicketPool(int poolMaxCapacity, PurchasePool purchasePool) {
         super(poolMaxCapacity);
-        this.inUseTickets = new ConcurrentLinkedQueue<>();
         this.purchasePool = purchasePool;
     }
 
@@ -28,13 +25,13 @@ public class TicketPool extends PoolAbstract {
         if (isPoolFull()) {
             return null;
         }
-        inUseTickets.add(ticket);
-        increasePoolUsedCapacity();
+        increasePoolUsedCapacity(ticket);
         return ticket.getId();
     }
 
     public Ticket findTicket(String id) {
-        for (Ticket ticket : inUseTickets) {
+        for (Object obj : inUseObjects) {
+            Ticket ticket = (Ticket) obj;
             if (ticket.getId().equals(id) && !ticket.isDeleted()) {
                 return ticket;
             }
@@ -51,9 +48,8 @@ public class TicketPool extends PoolAbstract {
             if (ticket.isDeleted()) {
                 return false;
             }
-            inUseTickets.remove(ticket);
             ticket.deleted();
-            decreasePoolUsedCapacity();
+            decreasePoolUsedCapacity(ticket);
             return true;
         });
     }
@@ -67,14 +63,13 @@ public class TicketPool extends PoolAbstract {
             if (ticket.isDeleted()) {
                 return false;
             }
-            inUseTickets.remove(ticket);
             ticket.deleted();
-            decreasePoolUsedCapacity();
+            decreasePoolUsedCapacity(ticket);
             return true;
         });
     }
 
-    public String queTicket(String id, Customer customer) {
+    public Purchase queTicket(String id, Customer customer) {
         Ticket ticket = findTicket(id);
         if (ticket == null) {
             return null;
@@ -89,22 +84,22 @@ public class TicketPool extends PoolAbstract {
             }
             String purchaseId = purchasePool.addPurchase(purchase);
             ticket.increaseBoughtQuantity();
-            return purchaseId;
+            return purchase;
         });
     }
 
-    public boolean buyTicket(String id, Customer customer) {
+    public Purchase buyTicket(String id, Customer customer) {
         Purchase purchase = purchasePool.findPurchase(id);
         if (purchase == null || !purchase.getCustomer().equals(customer)) {
-            return false;
+            return null;
         }
         return purchase.lockAndExecute(() -> {
             if (!purchase.getPurchaseStatus().equals(PurchaseStatus.PENDING)) {
-                return false;
+                return null;
             }
             purchase.setPurchaseDate(new Date());
             purchase.setPurchaseStatus(PurchaseStatus.PURCHASED);
-            return true;
+            return purchase;
         });
     }
 }

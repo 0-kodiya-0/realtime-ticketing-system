@@ -8,11 +8,10 @@ import org.backend.model.Purchase;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Getter
-public class PurchasePool {
-    private final ConcurrentLinkedQueue<Purchase> inUsePurchaseHistory;
+public class PurchasePool extends PoolAbstract {
 
-    public PurchasePool() {
-        this.inUsePurchaseHistory = new ConcurrentLinkedQueue<>();
+    public PurchasePool(int poolMaxCapacity) {
+        super(poolMaxCapacity);
     }
 
     public String addPurchase(Purchase purchase) {
@@ -20,12 +19,13 @@ public class PurchasePool {
             return null;
         }
         purchase.setPurchaseStatus(PurchaseStatus.PENDING);
-        inUsePurchaseHistory.add(purchase);
+        increasePoolUsedCapacity(purchase);
         return purchase.getId();
     }
 
     public Purchase findPurchase(String id) {
-        for (Purchase purchase : inUsePurchaseHistory) {
+        for (Object obj : inUseObjects) {
+            Purchase purchase = (Purchase) obj;
             if (purchase.getId().equals(id)) {
                 return purchase;
             }
@@ -41,7 +41,7 @@ public class PurchasePool {
         if (!purchase.getCustomer().equals(customer) && purchase.getPurchaseStatus() == PurchaseStatus.PURCHASED) {
             return false;
         }
-        inUsePurchaseHistory.remove(purchase);
+        decreasePoolUsedCapacity(purchase);
         return true;
     }
 }

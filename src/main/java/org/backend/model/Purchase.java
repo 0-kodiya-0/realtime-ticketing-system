@@ -1,6 +1,7 @@
 package org.backend.model;
 
 import lombok.Data;
+import org.backend.dto.DataToDto;
 import org.backend.dto.PurchaseDto;
 import org.backend.enums.PurchaseStatus;
 
@@ -10,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 @Data
-public class Purchase {
+public class Purchase implements DataToDto<PurchaseDto> {
     private final Ticket ticket;
     private final Customer customer;
     private final ReentrantLock lock = new ReentrantLock();
@@ -51,6 +52,7 @@ public class Purchase {
         }
     }
 
+    @Override
     public PurchaseDto toDto() {
         PurchaseDto purchaseDto = new PurchaseDto();
         purchaseDto.setId(id);

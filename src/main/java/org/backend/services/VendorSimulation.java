@@ -1,6 +1,5 @@
 package org.backend.services;
 
-import org.backend.output.JsonWriter;
 import org.backend.enums.EventTypes;
 import org.backend.enums.TicketCategory;
 import org.backend.event.EventMessage;
@@ -8,6 +7,7 @@ import org.backend.event.EventPublisher;
 import org.backend.event.VendorEvent;
 import org.backend.model.Ticket;
 import org.backend.model.Vendor;
+import org.backend.output.JsonWriter;
 import org.backend.pools.TicketPool;
 
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class VendorSimulation extends SimulationAbstract {
         this.sellingInterval = sellingInterval;
         this.vendor = vendor;
         this.ticketPool = ticketPool;
-        eventPublisher.publish(new VendorEvent(vendor, EventTypes.ADD_THREAD, new EventMessage("Added successfully", Map.of("Vendor", vendor))));
+        eventPublisher.publish(new VendorEvent(vendor, EventTypes.ADD_THREAD, new EventMessage("Thread added successful", Map.of("Vendor", vendor))));
     }
 
     private Ticket createTicket() {
@@ -50,9 +50,9 @@ public class VendorSimulation extends SimulationAbstract {
             Ticket ticket = createTicket();
             String isAdded = ticketPool.addTicket(ticket);
             if (isAdded != null) {
-                eventPublisher.publish(new VendorEvent(vendor, EventTypes.ADD_TICKET, new EventMessage("Ticket adding successfully", Map.of("ticket", ticket))));
+                eventPublisher.publish(new VendorEvent(vendor, EventTypes.ADD_TICKET, new EventMessage("Ticket addition successful",  Map.of("ticket", ticket))));
             } else {
-                eventPublisher.publish(new VendorEvent(vendor, EventTypes.ADD_TICKET_FAILED, new EventMessage("Ticket adding failed", Map.of("ticket", ticket))));
+                eventPublisher.publish(new VendorEvent(vendor, EventTypes.ADD_TICKET_FAILED, new EventMessage("Ticket addition failed", Map.of("ticket", ticket))));
             }
             Thread.sleep(sellingInterval);
         }
@@ -60,13 +60,16 @@ public class VendorSimulation extends SimulationAbstract {
 
     public void simulateTicketQuantityFullRemoval() {
         List<Ticket> removedTickets = new ArrayList<>();
-        for (Ticket ticket : ticketPool.getInUseTickets()) {
+        for (Object object : ticketPool.getInUseObjects()) {
+            Ticket ticket = (Ticket) object;
             if (ticketPool.removeQuantityFullTickets(ticket.getId(), vendor)) {
                 removedTickets.add(ticket);
+            } else {
+                eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET_FAILED, new EventMessage("Ticket quantity full removal failed", Map.of("ticket", ticket))));
             }
         }
+        eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET, new EventMessage("Ticket quantity full removal successful")));
         JsonWriter.writeToJsonPretty(removedTickets.stream().map(Ticket::toDto).collect(Collectors.toList()), "./vendor-data/vendor-" + vendor.getId() + "-" + ticketRemovalFileCreationCount + "-log.json");
-        eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET, new EventMessage("Ticket quantity full removal successfully", Map.of("Vendor", vendor, "removedTickets", removedTickets))));
         ticketRemovalFileCreationCount++;
     }
 
@@ -83,20 +86,23 @@ public class VendorSimulation extends SimulationAbstract {
     @Override
     public void stop() {
         clearMem();
-        eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVED_THREAD, new EventMessage("Removed successfully")));
+        eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVED_THREAD, new EventMessage("Thread removal successful")));
     }
-
 
     @Override
     public void clearMem() {
         List<Ticket> removedTickets = new ArrayList<>();
-        for (Ticket ticket : ticketPool.getInUseTickets()) {
+        for (Object obj : ticketPool.getInUseObjects()) {
+            Ticket ticket = (Ticket) obj;
             if (ticketPool.removeAllTickets(ticket.getId(), vendor)) {
                 removedTickets.add(ticket);
+            } else {
+                eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET_FAILED, new EventMessage("Ticket removal failed", Map.of("ticket", ticket))));
             }
         }
+        eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET, new EventMessage("Ticket removal successful")));
         JsonWriter.writeToJsonPretty(removedTickets.stream().map(Ticket::toDto).collect(Collectors.toList()), "./vendor-data/vendor-" + vendor.getId() + "-" + ticketRemovalFileCreationCount + "-log.json");
-        eventPublisher.publish(new VendorEvent(vendor, EventTypes.CLEAR_MEM, new EventMessage("Memory cleared successfully")));
+        eventPublisher.publish(new VendorEvent(vendor, EventTypes.CLEAR_MEM, new EventMessage("Memory cleared successful")));
         ticketRemovalFileCreationCount++;
     }
 
