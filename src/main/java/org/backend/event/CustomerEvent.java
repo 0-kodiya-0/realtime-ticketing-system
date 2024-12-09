@@ -8,16 +8,16 @@ import org.backend.model.Customer;
 public class CustomerEvent extends Event {
     private final Customer customer;
     private final EventTypes eventType;
-    private String message;
 
     public CustomerEvent(Customer customer, EventTypes eventType) {
+        super();
         this.customer = customer;
         this.eventType = eventType;
     }
 
-    public CustomerEvent(Customer customer, EventTypes eventType, String message) {
+    public CustomerEvent(Customer customer, EventTypes eventType, EventMessage eventMessage) {
+        super(eventMessage);
         this.customer = customer;
         this.eventType = eventType;
-        this.message = message;
     }
 }

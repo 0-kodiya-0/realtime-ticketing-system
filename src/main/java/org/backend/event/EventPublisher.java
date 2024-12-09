@@ -13,7 +13,7 @@ public class EventPublisher {
     private final ExecutorService executorService;
 
     private EventPublisher() {
-        this.executorService = Executors.newFixedThreadPool(5);
+        this.executorService = Executors.newFixedThreadPool(20);
     }
 
     public static EventPublisher getInstance() {
@@ -21,16 +21,20 @@ public class EventPublisher {
     }
 
     public <T extends Event> void subscribe(Class<T> eventType, EventListener<T> listener) {
-        List<EventListener<? extends Event>> eventListeners = listeners.computeIfAbsent(eventType, k -> new ArrayList<>());
-        eventListeners.add(listener);
+        synchronized (listeners) {
+            List<EventListener<? extends Event>> eventListeners = listeners.computeIfAbsent(eventType, k -> new ArrayList<>());
+            eventListeners.add(listener);
+        }
     }
 
-    public <T extends Event> void unsubscribe(Class<? extends EventListener> eventType, EventListener<T> listener) {
-        List<EventListener<? extends Event>> eventListeners = listeners.get(eventType);
-        if (eventListeners != null) {
-            eventListeners.remove(listener);
-            if (eventListeners.isEmpty()) {
-                listeners.remove(eventType);
+    public <T extends Event> void unsubscribe(Class<T> eventType, EventListener<T> listener) {
+        synchronized (listeners) {
+            List<EventListener<? extends Event>> eventListeners = listeners.get(eventType);
+            if (eventListeners != null) {
+                eventListeners.remove(listener);
+                if (eventListeners.isEmpty()) {
+                    listeners.remove(eventType);
+                }
             }
         }
     }
@@ -64,13 +68,13 @@ public class EventPublisher {
         }
     }
 
-    public boolean hasListeners(Class<? extends Event> eventType) {
-        List<EventListener<? extends Event>> eventListeners = listeners.get(eventType);
-        return eventListeners != null && !eventListeners.isEmpty();
-    }
-
-    public int getListenerCount(Class<? extends Event> eventType) {
-        List<EventListener<? extends Event>> eventListeners = listeners.get(eventType);
-        return eventListeners != null ? eventListeners.size() : 0;
-    }
+//    public boolean hasListeners(Class<? extends Event> eventType) {
+//        List<EventListener<? extends Event>> eventListeners = listeners.get(eventType);
+//        return eventListeners != null && !eventListeners.isEmpty();
+//    }
+//
+//    public int getListenerCount(Class<? extends Event> eventType) {
+//        List<EventListener<? extends Event>> eventListeners = listeners.get(eventType);
+//        return eventListeners != null ? eventListeners.size() : 0;
+//    }
 }

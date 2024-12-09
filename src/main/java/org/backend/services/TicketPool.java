@@ -26,7 +26,6 @@ public class TicketPool extends PoolAbstract {
             return null;
         }
         if (isPoolFull()) {
-//            System.out.println("Ticket pool full : " + ticket);
             return null;
         }
         inUseTickets.add(ticket);
@@ -43,12 +42,25 @@ public class TicketPool extends PoolAbstract {
         return null;
     }
 
-    public boolean removeTicket(String id, Vendor vendor) {
+    public boolean removeQuantityFullTickets(String id, Vendor vendor) {
         Ticket ticket = findTicket(id);
-        if (ticket == null) {
+        if (ticket == null || !ticket.getVendor().equals(vendor) || !ticket.isBoughtQuantityReachedMaxQuantity()) {
             return false;
         }
-        if (!ticket.getVendor().equals(vendor)) {
+        return ticket.lockAndExecute(() -> {
+            if (ticket.isDeleted()) {
+                return false;
+            }
+            inUseTickets.remove(ticket);
+            ticket.deleted();
+            decreasePoolUsedCapacity();
+            return true;
+        });
+    }
+
+    public boolean removeAllTickets(String id, Vendor vendor) {
+        Ticket ticket = findTicket(id);
+        if (ticket == null || !ticket.getVendor().equals(vendor)) {
             return false;
         }
         return ticket.lockAndExecute(() -> {
@@ -73,7 +85,6 @@ public class TicketPool extends PoolAbstract {
             }
             Purchase purchase = new Purchase(ticket, customer);
             if (ticket.isBoughtQuantityReachedMaxQuantity()) {
-//                System.out.println("Ticket id: " + id + " bought quantity exited the maximum limit");
                 return null;
             }
             String purchaseId = purchasePool.addPurchase(purchase);
@@ -84,10 +95,7 @@ public class TicketPool extends PoolAbstract {
 
     public boolean buyTicket(String id, Customer customer) {
         Purchase purchase = purchasePool.findPurchase(id);
-        if (purchase == null) {
-            return false;
-        }
-        if (!purchase.getCustomer().equals(customer)) {
+        if (purchase == null || !purchase.getCustomer().equals(customer)) {
             return false;
         }
         return purchase.lockAndExecute(() -> {

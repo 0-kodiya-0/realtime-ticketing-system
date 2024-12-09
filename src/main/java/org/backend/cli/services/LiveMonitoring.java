@@ -2,75 +2,61 @@ package org.backend.cli.services;
 
 import org.backend.cli.enums.LiveMonitorType;
 import org.backend.enums.EventTypes;
-import org.backend.event.*;
-import org.backend.services.CustomerPool;
+import org.backend.event.CustomerEvent;
+import org.backend.event.EventListener;
+import org.backend.event.EventPublisher;
+import org.backend.event.VendorEvent;
 import org.backend.services.PurchasePool;
 import org.backend.services.TicketPool;
-import org.backend.services.VendorPool;
 
 import java.util.Date;
-import java.util.List;
 
 public class LiveMonitoring implements Simulation {
     private final TicketPool ticketPool;
     private final PurchasePool purchasePool;
-    private final VendorPool vendorPool;
-    private final CustomerPool customerPool;
     private final EventPublisher publisher = EventPublisher.getInstance();
     private final LiveMonitorType liveMonitoringType;
-    private ThreadEventPasser threadEventPasser;
-    private List<EventListener<? extends Event>> eventListeners;
+    private final ThreadEventPasser threadEventPasser;
 
-    public LiveMonitoring(LiveMonitorType liveMonitoringType, ThreadEventPasser threadEventPasser, TicketPool ticketPool, PurchasePool purchasePool, VendorPool vendorPool, CustomerPool customerPool) {
+    private EventListener<CustomerEvent> customerEventListener;
+    private EventListener<VendorEvent> vendorEventListener;
+
+    public LiveMonitoring(LiveMonitorType liveMonitoringType, ThreadEventPasser threadEventPasser, TicketPool ticketPool, PurchasePool purchasePool) {
         this.liveMonitoringType = liveMonitoringType;
         this.threadEventPasser = threadEventPasser;
         this.ticketPool = ticketPool;
         this.purchasePool = purchasePool;
-        this.vendorPool = vendorPool;
-        this.customerPool = customerPool;
     }
 
-    public List<EventListener<? extends Event>> individualEventMonitor() {
-        EventListener<CustomerEvent> customerEventEventListener = new EventListener<CustomerEvent>() {
+    public void individualEventMonitor() {
+        this.customerEventListener = new EventListener<CustomerEvent>() {
             @Override
             public void onEvent(CustomerEvent event) {
                 System.out.println(event);
             }
         };
-        EventListener<VendorEvent> vendorEventEventListener = new EventListener<VendorEvent>() {
-
+        this.vendorEventListener = new EventListener<VendorEvent>() {
             @Override
             public void onEvent(VendorEvent event) {
                 System.out.println(event);
             }
         };
-        publisher.subscribe(CustomerEvent.class, customerEventEventListener);
-        publisher.subscribe(VendorEvent.class, vendorEventEventListener);
-        return List.of(customerEventEventListener, vendorEventEventListener);
+        publisher.subscribe(CustomerEvent.class, this.customerEventListener);
+        publisher.subscribe(VendorEvent.class, this.vendorEventListener);
     }
 
     private void periodEventMonitor() {
         Date liveMonitorStartTime = new Date();
-        int customerPoolBeforeCount = customerPool.getInUseCustomers().size();
         int purchasePoolBeforeCount = purchasePool.getInUsePurchaseHistory().size();
         int ticketPoolBeforeCount = ticketPool.getInUseTickets().size();
-        int vendorPoolBeforeCount = vendorPool.getInUseVendor().size();
         while (!threadEventPasser.receiveEvent().equals(EventTypes.REMOVED_THREAD)) {
             try {
                 Date liveMonitorEndTime = new Date();
                 System.out.println("------------------------------------------------------------");
                 System.out.println("Live monitor status from (" + liveMonitorStartTime + ") to (" + liveMonitorEndTime + ")");
-                System.out.println(" Customer pool size : " + customerPool.getInUseCustomers().size());
                 System.out.println(" Purchase pool size : " + purchasePool.getInUsePurchaseHistory().size());
                 System.out.println(" Ticket pool size   : " + ticketPool.getInUseTickets().size());
-                System.out.println(" Vendor pool size   : " + vendorPool.getInUseVendor().size());
                 System.out.println("---------------------");
-                int newlyAddedCustomers = customerPool.getInUseCustomers().size() - customerPoolBeforeCount;
-                if (newlyAddedCustomers > 0) {
-                    System.out.println(" * " + newlyAddedCustomers + " new customers added");
-                } else {
-                    System.out.println(" * " + -newlyAddedCustomers + " customers removed");
-                }
                 int newlyAddedPurchases = purchasePool.getInUsePurchaseHistory().size() - purchasePoolBeforeCount;
                 if (newlyAddedPurchases > 0) {
                     System.out.println(" * " + newlyAddedPurchases + " new purchase history added");
@@ -83,18 +69,10 @@ public class LiveMonitoring implements Simulation {
                 } else {
                     System.out.println(" * " + -newlyAddedTickets + " tickets removed");
                 }
-                int newlyAddedVendors = vendorPool.getInUseVendor().size() - vendorPoolBeforeCount;
-                if (newlyAddedVendors > 0) {
-                    System.out.println(" * " + newlyAddedVendors + " new vendors added");
-                } else {
-                    System.out.println(" * " + -newlyAddedVendors + " vendors removed");
-                }
-                customerPoolBeforeCount = customerPool.getInUseCustomers().size();
                 purchasePoolBeforeCount = purchasePool.getInUsePurchaseHistory().size();
                 ticketPoolBeforeCount = ticketPool.getInUseTickets().size();
-                vendorPoolBeforeCount = vendorPool.getInUseVendor().size();
                 liveMonitorStartTime = liveMonitorEndTime;
-                Thread.sleep(3000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 System.out.println("------------------------------------------------------------");
@@ -106,8 +84,10 @@ public class LiveMonitoring implements Simulation {
 
     @Override
     public void run() {
+        System.out.println("------------------------------------------------------------");
+        System.out.println(" Live monitoring enabled");
+        System.out.println("------------------------------------------------------------");
         start();
-        clearMem();
     }
 
     @Override
@@ -115,17 +95,21 @@ public class LiveMonitoring implements Simulation {
         if (liveMonitoringType.equals(LiveMonitorType.PERIOD_MONITOR)) {
             periodEventMonitor();
         } else {
-            eventListeners = individualEventMonitor();
+            individualEventMonitor();
         }
     }
 
     @Override
+    public void stop() {
+        clearMem();
+    }
+
+    @Override
     public void clearMem() {
-        if (eventListeners == null) {
+        if (customerEventListener == null || vendorEventListener == null) {
             return;
         }
-        for (EventListener listener : eventListeners) {
-            publisher.unsubscribe(listener.getClass(), listener);
-        }
+        publisher.unsubscribe(CustomerEvent.class, this.customerEventListener);
+        publisher.unsubscribe(VendorEvent.class, this.vendorEventListener);
     }
 }
