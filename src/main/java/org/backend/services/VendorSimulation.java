@@ -40,10 +40,7 @@ public class VendorSimulation extends SimulationAbstract {
     }
 
     public void simulateTicketSelling() throws InterruptedException {
-        while (true) {
-            if (threadEventPasser.receiveEvent().equals(EventTypes.REMOVED_THREAD)) {
-                break;
-            }
+        while (!Thread.currentThread().isInterrupted()) {
             if (ticketPool.isPoolFull()) {
                 return;
             }
@@ -62,7 +59,7 @@ public class VendorSimulation extends SimulationAbstract {
         List<Ticket> removedTickets = new ArrayList<>();
         for (Object object : ticketPool.getInUseObjects()) {
             Ticket ticket = (Ticket) object;
-            if (ticketPool.removeQuantityFullTickets(ticket.getId(), vendor)) {
+            if (ticketPool.removeQuantityFullTickets(ticket, vendor)) {
                 removedTickets.add(ticket);
             } else {
                 eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET_FAILED, new EventMessage("Ticket quantity full removal failed", Map.of("ticket", ticket))));
@@ -75,7 +72,7 @@ public class VendorSimulation extends SimulationAbstract {
 
     @Override
     public void start() throws InterruptedException {
-        while (!threadEventPasser.receiveEvent().equals(EventTypes.REMOVED_THREAD)) {
+        while (!Thread.currentThread().isInterrupted()) {
             simulateTicketSelling();
             Thread.sleep(5000);
             simulateTicketQuantityFullRemoval();
@@ -94,7 +91,7 @@ public class VendorSimulation extends SimulationAbstract {
         List<Ticket> removedTickets = new ArrayList<>();
         for (Object obj : ticketPool.getInUseObjects()) {
             Ticket ticket = (Ticket) obj;
-            if (ticketPool.removeAllTickets(ticket.getId(), vendor)) {
+            if (ticketPool.removeAllTickets(ticket, vendor)) {
                 removedTickets.add(ticket);
             } else {
                 eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET_FAILED, new EventMessage("Ticket removal failed", Map.of("ticket", ticket))));
@@ -113,5 +110,6 @@ public class VendorSimulation extends SimulationAbstract {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        stop();
     }
 }

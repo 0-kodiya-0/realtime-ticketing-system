@@ -53,7 +53,7 @@ public class Ticket implements DataToDto<TicketDto> {
     public TicketDto toDto() {
         TicketDto dto = new TicketDto();
         dto.setId(id);
-        dto.setVendor(vendor.toDto());
+        dto.setVendorId(vendor.getId());
         dto.setCategory(category);
         dto.setQuantity(quantity);
         dto.setBoughtQuantity(boughtQuantity);

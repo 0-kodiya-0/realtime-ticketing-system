@@ -13,7 +13,7 @@ public class EventPublisher {
     private final ExecutorService executorService;
 
     private EventPublisher() {
-        this.executorService = Executors.newFixedThreadPool(20);
+        this.executorService = Executors.newFixedThreadPool(100);
     }
 
     public static EventPublisher getInstance() {
@@ -45,8 +45,8 @@ public class EventPublisher {
         }
         List<EventListener<? extends Event>> eventListeners = listeners.get(event.getClass());
         if (eventListeners != null && !eventListeners.isEmpty()) {
-//            List<EventListener<? extends EventAbtract>> listenersCopy = new ArrayList<>(eventListeners);
-            for (EventListener<? extends Event> listener : eventListeners) {
+            List<EventListener<? extends Event>> listenersCopy = new ArrayList<>(eventListeners);
+            for (EventListener<? extends Event> listener : listenersCopy) {
                 EventListener<T> typedListener = (EventListener<T>) listener;
                 executorService.submit(() -> {
                     try {

@@ -7,7 +7,9 @@ import org.backend.model.Purchase;
 import org.backend.model.Ticket;
 import org.backend.model.Vendor;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 public class TicketPool extends PoolAbstract {
@@ -39,8 +41,18 @@ public class TicketPool extends PoolAbstract {
         return null;
     }
 
-    public boolean removeQuantityFullTickets(String id, Vendor vendor) {
-        Ticket ticket = findTicket(id);
+    public List<Ticket> findAllQuantityNotFullTicket() {
+        List<Ticket> ticketsQuantityNotFull = new ArrayList<Ticket>();
+        for (Object obj : inUseObjects) {
+            Ticket ticket = (Ticket) obj;
+            if (!ticket.isDeleted() && !ticket.isBoughtQuantityReachedMaxQuantity()) {
+                ticketsQuantityNotFull.add(ticket);
+            }
+        }
+        return ticketsQuantityNotFull;
+    }
+
+    public boolean removeQuantityFullTickets(Ticket ticket, Vendor vendor) {
         if (ticket == null || !ticket.getVendor().equals(vendor) || !ticket.isBoughtQuantityReachedMaxQuantity()) {
             return false;
         }
@@ -54,8 +66,7 @@ public class TicketPool extends PoolAbstract {
         });
     }
 
-    public boolean removeAllTickets(String id, Vendor vendor) {
-        Ticket ticket = findTicket(id);
+    public boolean removeAllTickets(Ticket ticket, Vendor vendor) {
         if (ticket == null || !ticket.getVendor().equals(vendor)) {
             return false;
         }
@@ -82,7 +93,7 @@ public class TicketPool extends PoolAbstract {
             if (ticket.isBoughtQuantityReachedMaxQuantity()) {
                 return null;
             }
-            String purchaseId = purchasePool.addPurchase(purchase);
+            purchasePool.addPurchase(purchase);
             ticket.increaseBoughtQuantity();
             return purchase;
         });

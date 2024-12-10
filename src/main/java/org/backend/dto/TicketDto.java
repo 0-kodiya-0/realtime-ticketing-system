@@ -7,7 +7,7 @@ import org.backend.enums.TicketCategory;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class TicketDto extends Dto {
-    private VendorDto vendor;
+    private String vendorId;
     private TicketCategory category;
     private long quantity;
     private long boughtQuantity;

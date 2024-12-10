@@ -1,9 +1,7 @@
 package org.backend.pools;
 
 import lombok.Getter;
-import org.backend.services.CustomerSimulation;
 import org.backend.services.Simulation;
-import org.backend.services.VendorSimulation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +13,7 @@ public class ThreadPool extends PoolAbstract {
         super(poolMaxCapacity);
     }
 
-    public <T extends Simulation> Thread execute(T task) {
+    public <T extends Simulation> Thread addAndExecute(T task, int threadPriority) {
         if (isPoolFull()) {
             return null;
         }
@@ -25,8 +23,8 @@ public class ThreadPool extends PoolAbstract {
         return thread;
     }
 
-    public <T extends Simulation> List<T> execute(T task, int repetitions) {
-        List<T> addedTasks = new ArrayList<>();
+    public <T extends Simulation> List<Thread> add(T task, int repetitions, int threadPriority) {
+        List<Thread> addedTasks = new ArrayList<>();
         boolean isPoolFull = false;
         if ((getPoolMaxCapacity() - getPoolUsedCapacity()) < repetitions) {
             return addedTasks;
@@ -37,56 +35,67 @@ public class ThreadPool extends PoolAbstract {
                 break;
             }
             Thread thread = new Thread(task);
+            thread.setPriority(threadPriority);
             increasePoolUsedCapacity(thread);
-            addedTasks.add(task);
-            thread.start();
+            addedTasks.add(thread);
         }
         if (isPoolFull) {
-            for (T addedTask : addedTasks) {
+            for (Thread addedTask : addedTasks) {
                 shutdown(addedTask);
+                addedTasks.remove(addedTask);
             }
         }
         return addedTasks;
     }
 
-    public <T extends Simulation> void shutdown(T task) {
+    public List<Thread> executeAll() {
+        List<Thread> executingTasks = new ArrayList<>();
         for (Object obj : inUseObjects) {
-            if (obj.equals(task)) {
+            Thread thread = (Thread) obj;
+            while (!thread.isAlive()) {
+                thread.start();
+            }
+            executingTasks.add(thread);
+        }
+        return executingTasks;
+    }
+
+    public Thread shutdown(Thread task) {
+        for (Object obj : inUseObjects) {
+            Thread thread = (Thread) obj;
+            if (thread.equals(task)) {
                 inUseObjects.remove(obj);
-                try {
-                    task.stop();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                while (thread.isAlive()) {
+                    task.interrupt();
                 }
-                break;
+                return thread;
             }
         }
+        return null;
     }
 
-    public void shutdownAllCustomers() {
-        for (Object obj : inUseObjects) {
-            if (obj instanceof CustomerSimulation customer) {
-                customer.stop();
-            }
-        }
-    }
+//    public List<Thread> interruptAll() {
+//        List<Thread> interruptedTasks = new ArrayList<>();
+//        for (Object obj : inUseObjects) {
+//            Thread thread = (Thread) obj;
+//            interruptedTasks.add(thread);
+//            while (thread.isAlive()) {
+//                thread.interrupt();
+//            }
+//        }
+//        return interruptedTasks;
+//    }
 
-    public void shutDownAllVendors() {
+    public List<Thread> shutdownAll() {
+        List<Thread> removedTasks = new ArrayList<>();
         for (Object obj : inUseObjects) {
-            if (obj instanceof VendorSimulation vendor) {
-                vendor.stop();
+            Thread thread = (Thread) obj;
+            inUseObjects.remove(obj);
+            removedTasks.add(thread);
+            while (thread.isAlive()) {
+                thread.interrupt();
             }
         }
-    }
-
-    public void shutdownAll() {
-        for (Object obj : inUseObjects) {
-            Simulation sim = (Simulation) obj;
-            try {
-                sim.stop();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        return removedTasks;
     }
 }

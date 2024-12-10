@@ -56,8 +56,8 @@ public class Purchase implements DataToDto<PurchaseDto> {
     public PurchaseDto toDto() {
         PurchaseDto purchaseDto = new PurchaseDto();
         purchaseDto.setId(id);
-        purchaseDto.setTicket(ticket.toDto());
-        purchaseDto.setCustomer(customer.toDto());
+        purchaseDto.setTicketId(ticket.getId());
+        purchaseDto.setCustomerId(customer.getId());
         purchaseDto.setPurchaseDate(purchaseDate);
         purchaseDto.setPurchaseStatus(purchaseStatus);
         return purchaseDto;

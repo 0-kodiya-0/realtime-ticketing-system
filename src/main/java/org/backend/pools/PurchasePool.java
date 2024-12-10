@@ -33,8 +33,7 @@ public class PurchasePool extends PoolAbstract {
         return null;
     }
 
-    public boolean removePurchase(String id, Customer customer) {
-        Purchase purchase = findPurchase(id);
+    public boolean removePurchase(Purchase purchase, Customer customer) {
         if (purchase == null) {
             return false;
         }

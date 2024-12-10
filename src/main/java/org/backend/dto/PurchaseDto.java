@@ -9,8 +9,8 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class PurchaseDto extends Dto {
-    private TicketDto ticket;
-    private CustomerDto customer;
+    private String ticketId;
+    private String customerId;
     private Date purchaseDate;
     private PurchaseStatus purchaseStatus;
 }
