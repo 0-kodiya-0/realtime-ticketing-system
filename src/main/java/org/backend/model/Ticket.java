@@ -12,17 +12,15 @@ import java.util.function.Supplier;
 @Data
 public class Ticket implements DataToDto<TicketDto> {
     private final Vendor vendor;
-    private final TicketCategory category;
     private final long quantity;
     private final ReentrantLock lock = new ReentrantLock();
     private final String id;
     private long boughtQuantity;
     private boolean isDeleted = false;
 
-    public Ticket(Vendor vendor, TicketCategory category, long quantity) {
+    public Ticket(Vendor vendor, long quantity) {
         this.id = UUID.randomUUID().toString();
         this.vendor = vendor;
-        this.category = category;
         this.quantity = quantity;
     }
 
@@ -54,7 +52,6 @@ public class Ticket implements DataToDto<TicketDto> {
         TicketDto dto = new TicketDto();
         dto.setId(id);
         dto.setVendorId(vendor.getId());
-        dto.setCategory(category);
         dto.setQuantity(quantity);
         dto.setBoughtQuantity(boughtQuantity);
         return dto;

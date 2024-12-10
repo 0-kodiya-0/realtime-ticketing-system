@@ -1,57 +1,25 @@
 package org.backend.services;
 
-import org.backend.enums.LiveMonitorType;
-import org.backend.event.CustomerEvent;
-import org.backend.event.EventListener;
-import org.backend.event.EventPublisher;
-import org.backend.event.VendorEvent;
 import org.backend.pools.PurchasePool;
 import org.backend.pools.TicketPool;
+import org.backend.thread.ThreadExecutableAbstract;
 
 import java.util.Date;
 
-public class LiveMonitoring implements Simulation {
+public class LiveMonitoring extends ThreadExecutableAbstract {
     private final TicketPool ticketPool;
     private final PurchasePool purchasePool;
-    private final EventPublisher publisher = EventPublisher.getInstance();
-    private final LiveMonitorType liveMonitoringType;
-    private final ThreadEventPasser threadEventPasser;
 
-    private EventListener<CustomerEvent> customerEventListener;
-    private EventListener<VendorEvent> vendorEventListener;
-
-    public LiveMonitoring(LiveMonitorType liveMonitoringType, ThreadEventPasser threadEventPasser, TicketPool ticketPool, PurchasePool purchasePool) {
-        this.liveMonitoringType = liveMonitoringType;
-        this.threadEventPasser = threadEventPasser;
+    public LiveMonitoring(TicketPool ticketPool, PurchasePool purchasePool) {
         this.ticketPool = ticketPool;
         this.purchasePool = purchasePool;
-    }
-
-    public void individualEventMonitor() throws InterruptedException {
-        this.customerEventListener = new EventListener<CustomerEvent>() {
-            @Override
-            public void onEvent(CustomerEvent event) {
-                System.out.println(event);
-            }
-        };
-        this.vendorEventListener = new EventListener<VendorEvent>() {
-            @Override
-            public void onEvent(VendorEvent event) {
-                System.out.println(event);
-            }
-        };
-        publisher.subscribe(CustomerEvent.class, this.customerEventListener);
-        publisher.subscribe(VendorEvent.class, this.vendorEventListener);
-        while (!Thread.currentThread().isInterrupted()) {
-            Thread.sleep(2000);
-        }
     }
 
     private void periodEventMonitor() throws InterruptedException {
         Date liveMonitorStartTime = new Date();
         int purchasePoolBeforeCount = purchasePool.getInUseObjects().size();
         int ticketPoolBeforeCount = ticketPool.getInUseObjects().size();
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!stopHappeningOperations) {
             Date liveMonitorEndTime = new Date();
             System.out.println("------------------------------------------------------------");
             System.out.println("Live monitor status from (" + liveMonitorStartTime + ") to (" + liveMonitorEndTime + ")");
@@ -82,34 +50,31 @@ public class LiveMonitoring implements Simulation {
         System.out.println("------------------------------------------------------------");
         System.out.println(" Live monitoring enabled");
         System.out.println("------------------------------------------------------------");
-        try{
+        try {
             start();
+            stop(false);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            stop(true);
         }
-        stop();
     }
 
     @Override
     public void start() throws InterruptedException {
-        if (liveMonitoringType.equals(LiveMonitorType.PERIOD_MONITOR)) {
-            periodEventMonitor();
-        } else {
-            individualEventMonitor();
-        }
+        stopHappeningOperations = false;
+        periodEventMonitor();
     }
 
     @Override
-    public void stop() {
+    public void stop(boolean interruptThread) {
+        stopHappeningOperations = true;
         clearMem();
+        if (interruptThread) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
     public void clearMem() {
-        if (customerEventListener == null || vendorEventListener == null) {
-            return;
-        }
-        publisher.unsubscribe(CustomerEvent.class, this.customerEventListener);
-        publisher.unsubscribe(VendorEvent.class, this.vendorEventListener);
+        return;
     }
 }

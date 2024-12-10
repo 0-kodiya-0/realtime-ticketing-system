@@ -1,5 +1,7 @@
 package org.backend.pools;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.backend.enums.PurchaseStatus;
 import org.backend.model.Customer;
@@ -11,7 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Getter
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class TicketPool extends PoolAbstract {
     private final PurchasePool purchasePool;
 
@@ -41,8 +44,19 @@ public class TicketPool extends PoolAbstract {
         return null;
     }
 
+    public List<Ticket> findTicketsForVendor(String vendorId) {
+        List<Ticket> tickets = new ArrayList<>();
+        for (Object obj : inUseObjects) {
+            Ticket ticket = (Ticket) obj;
+            if (ticket.getVendor().getId().equals(vendorId)) {
+                tickets.add(ticket);
+            }
+        }
+        return tickets;
+    }
+
     public List<Ticket> findAllQuantityNotFullTicket() {
-        List<Ticket> ticketsQuantityNotFull = new ArrayList<Ticket>();
+        List<Ticket> ticketsQuantityNotFull = new ArrayList<>();
         for (Object obj : inUseObjects) {
             Ticket ticket = (Ticket) obj;
             if (!ticket.isDeleted() && !ticket.isBoughtQuantityReachedMaxQuantity()) {
@@ -86,21 +100,17 @@ public class TicketPool extends PoolAbstract {
             return null;
         }
         return ticket.lockAndExecute(() -> {
-            if (ticket.isDeleted()) {
+            if (ticket.isDeleted() || ticket.isBoughtQuantityReachedMaxQuantity()) {
                 return null;
             }
             Purchase purchase = new Purchase(ticket, customer);
-            if (ticket.isBoughtQuantityReachedMaxQuantity()) {
-                return null;
-            }
             purchasePool.addPurchase(purchase);
             ticket.increaseBoughtQuantity();
             return purchase;
         });
     }
 
-    public Purchase buyTicket(String id, Customer customer) {
-        Purchase purchase = purchasePool.findPurchase(id);
+    public Purchase buyTicket(Purchase purchase, Customer customer) {
         if (purchase == null || !purchase.getCustomer().equals(customer)) {
             return null;
         }

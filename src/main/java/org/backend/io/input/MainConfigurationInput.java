@@ -1,7 +1,8 @@
-package org.backend.input;
+package org.backend.io.input;
 
-import org.backend.output.JsonReader;
 import org.backend.dto.MainConfigurationDto;
+import org.backend.enums.FilePaths;
+import org.backend.io.file.JsonReader;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,14 +28,12 @@ public class MainConfigurationInput extends UserInputAbstract {
         mainConfigurationDto.setTicketReleaseRate(getValidIntegerInput("Enter ticket release rate (tickets per minute)", 1000, (int) TimeUnit.MINUTES.toMillis(1)));
         mainConfigurationDto.setTicketRetrievalRate(getValidIntegerInput("Enter ticket retrieval rate (tickets per minute)", 500, (int) TimeUnit.MINUTES.toMillis(1)));
         mainConfigurationDto.setMaximumTicketCapacity(getValidIntegerInput("Enter maximum ticket capacity", 10, 500));
-        mainConfigurationDto.setTotalNumberOfCustomers(getValidIntegerInput("Enter total number of customers", 1, 200));
-        mainConfigurationDto.setTotalNumberOfVendors(getValidIntegerInput("Enter total number of vendors", 1, 200));
         return mainConfigurationDto;
     }
 
     public static MainConfigurationDto getInput() throws IOException {
         if (loadMainConfiguration()) {
-            return JsonReader.jsonToMap("./config.json", MainConfigurationDto.class);
+            return JsonReader.jsonToMap(FilePaths.CONFIG.toString(), MainConfigurationDto.class);
         }
         return getMainConfiguration();
     }

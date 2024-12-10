@@ -1,61 +1,54 @@
 package org.backend.services;
 
-import org.backend.enums.EventTypes;
-import org.backend.event.CustomerEvent;
-import org.backend.event.EventMessage;
-import org.backend.event.EventPublisher;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.backend.enums.CustomerTypes;
+import org.backend.enums.FilePaths;
+import org.backend.io.file.JsonWriter;
 import org.backend.model.Customer;
 import org.backend.model.Purchase;
 import org.backend.model.Ticket;
-import org.backend.output.JsonWriter;
 import org.backend.pools.PurchasePool;
 import org.backend.pools.TicketPool;
+import org.backend.thread.ThreadExecutableAbstract;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
-public class CustomerSimulation extends SimulationAbstract {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class CustomerSimulation extends ThreadExecutableAbstract {
 
-    private final Customer customer;
+    private final Customer customer = new Customer();
     private final TicketPool ticketPool;
     private final PurchasePool purchasePool;
     private final int buyingInterval;
-    private final EventPublisher eventPublisher = EventPublisher.getInstance();
-    private final ConcurrentLinkedQueue<Ticket> newlyAddedTickets = new ConcurrentLinkedQueue<>();
 
-    public CustomerSimulation(int buyingInterval, ThreadEventPasser threadEventPasser, Customer customer, TicketPool ticketPool, PurchasePool purchasePool) {
-        super(threadEventPasser);
+    public CustomerSimulation(int buyingInterval, CustomerTypes isCustomerType, TicketPool ticketPool, PurchasePool purchasePool) {
         this.buyingInterval = buyingInterval;
-        this.customer = customer;
+        this.customer.setType(isCustomerType);
+        this.id = this.customer.getId();
         this.ticketPool = ticketPool;
         this.purchasePool = purchasePool;
-        eventPublisher.publish(new CustomerEvent(customer, EventTypes.QUE_TICKET, new EventMessage("Thread added successfully")));
-    }
-
-    private void simulatePaying(String id, Customer customer) {
-        Purchase purchase = ticketPool.buyTicket(id, customer);
-        if (purchase != null) {
-            eventPublisher.publish(new CustomerEvent(customer, EventTypes.BUY_TICKET, new EventMessage("Ticket buy successful", Map.of("purchase", purchase))));
+        if (customer.getType().equals(CustomerTypes.VIP)) {
+            threadPriority = Thread.MAX_PRIORITY;
         } else {
-            eventPublisher.publish(new CustomerEvent(customer, EventTypes.BUY_TICKET_FAILED, new EventMessage("Ticket buy failed")));
+            threadPriority = Thread.MIN_PRIORITY;
         }
     }
 
     private void simulateBuying() throws InterruptedException {
-        while (!(Thread.currentThread().isInterrupted())) {
+        while (!stopHappeningOperations) {
             for (Ticket ticket : ticketPool.findAllQuantityNotFullTicket()) {
                 Purchase purchase = ticketPool.queTicket(ticket.getId(), customer);
                 if (purchase != null) {
-                    eventPublisher.publish(new CustomerEvent(customer, EventTypes.QUE_TICKET, new EventMessage("Ticket que successfully", Map.of("ticket", ticket, "que", purchase))));
-                    simulatePaying(purchase.getId(), customer);
-                } else {
-                    eventPublisher.publish(new CustomerEvent(customer, EventTypes.QUE_TICKET_FAILED, new EventMessage("Ticket que failed", Map.of("ticket", ticket))));
+                    ticketPool.buyTicket(purchase, customer);
                 }
                 Thread.sleep(buyingInterval);
             }
+            Thread.sleep(buyingInterval);
         }
     }
 
@@ -65,30 +58,41 @@ public class CustomerSimulation extends SimulationAbstract {
             Purchase purchase = (Purchase) obj;
             if (purchasePool.removePurchase(purchase, customer)) {
                 removedPurchases.add(purchase);
-            } else {
-                eventPublisher.publish(new CustomerEvent(customer, EventTypes.REMOVE_PURCHASE_FAILED, new EventMessage("Purchases removing failed", Map.of("purchase", purchase))));
             }
         }
-        eventPublisher.publish(new CustomerEvent(customer, EventTypes.REMOVE_PURCHASE, new EventMessage("Purchases removing successfully")));
         return removedPurchases;
     }
 
     @Override
     public void start() throws InterruptedException {
+        if (!stopHappeningOperations) {
+            throw new IllegalArgumentException("Thread already running");
+        }
+        stopHappeningOperations = false;
         simulateBuying();
     }
 
     @Override
-    public void stop() {
+    public void stop(boolean interruptThread) {
+        if (stopHappeningOperations) {
+            throw new IllegalArgumentException("Thread already stopped");
+        }
+        stopHappeningOperations = true;
         clearMem();
-        eventPublisher.publish(new CustomerEvent(customer, EventTypes.REMOVED_THREAD, new EventMessage("Thread removed successfully")));
+        if (interruptThread) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
     public void clearMem() {
         List<Purchase> removeCustomerPurchases = removeCustomerPurchases();
-        JsonWriter.writeToJsonPretty(removeCustomerPurchases.stream().map(Purchase::toDto).collect(Collectors.toList()), "./customer-data/customer-" + customer.getId() + "-log.json");
-        eventPublisher.publish(new CustomerEvent(customer, EventTypes.CLEAR_MEM, new EventMessage("Memory cleared successfully")));
+        try {
+            JsonWriter.writeChunkedJsonFiles(FilePaths.CUSTOMER.toString(), "customer", id, removeCustomerPurchases.stream().map(Purchase::toDto).collect(Collectors.toList()));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
     }
 
     @Override
@@ -96,8 +100,10 @@ public class CustomerSimulation extends SimulationAbstract {
         try {
             start();
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            stop(true);
+        } catch (Exception e) {
+            stop(true);
+            throw new RuntimeException(e);
         }
-        stop();
     }
 }

@@ -1,16 +1,20 @@
 package org.backend.pools;
 
-import lombok.Getter;
+import lombok.Data;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Getter
+@Data
 public abstract class PoolAbstract {
     protected final ConcurrentLinkedQueue<Object> inUseObjects = new ConcurrentLinkedQueue<>();
     private final ReentrantLock lock = new ReentrantLock();
     private final int poolMaxCapacity;
     private int poolUsedCapacity = 0;
+
+    public PoolAbstract() {
+        poolMaxCapacity = 1000;
+    }
 
     public PoolAbstract(int poolMaxCapacity) {
         this.poolMaxCapacity = poolMaxCapacity;

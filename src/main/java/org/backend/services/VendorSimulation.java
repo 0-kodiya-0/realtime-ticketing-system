@@ -1,56 +1,44 @@
 package org.backend.services;
 
-import org.backend.enums.EventTypes;
-import org.backend.enums.TicketCategory;
-import org.backend.event.EventMessage;
-import org.backend.event.EventPublisher;
-import org.backend.event.VendorEvent;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.backend.enums.FilePaths;
+import org.backend.io.file.JsonWriter;
 import org.backend.model.Ticket;
 import org.backend.model.Vendor;
-import org.backend.output.JsonWriter;
 import org.backend.pools.TicketPool;
+import org.backend.thread.ThreadExecutableAbstract;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-public class VendorSimulation extends SimulationAbstract {
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class VendorSimulation extends ThreadExecutableAbstract {
 
     private final Random randomNumberFinder = new Random();
 
     private final TicketPool ticketPool;
-    private final Vendor vendor;
+    private final Vendor vendor = new Vendor();
     private final int sellingInterval;
-    private final EventPublisher eventPublisher = EventPublisher.getInstance();
     private int ticketRemovalFileCreationCount = 0;
 
-    public VendorSimulation(int sellingInterval, ThreadEventPasser threadEventPasser, Vendor vendor, TicketPool ticketPool) {
-        super(threadEventPasser);
+    public VendorSimulation(int sellingInterval, TicketPool ticketPool) {
         this.sellingInterval = sellingInterval;
-        this.vendor = vendor;
+        this.id = this.vendor.getId();
         this.ticketPool = ticketPool;
-        eventPublisher.publish(new VendorEvent(vendor, EventTypes.ADD_THREAD, new EventMessage("Thread added successful", Map.of("Vendor", vendor))));
-    }
-
-    private Ticket createTicket() {
-        TicketCategory ticketCategory = TicketCategory.values()[randomNumberFinder.nextInt(TicketCategory.values().length)];
-        return new Ticket(vendor, ticketCategory, randomNumberFinder.nextInt(2, 5));
     }
 
     public void simulateTicketSelling() throws InterruptedException {
-        while (!Thread.currentThread().isInterrupted()) {
+        while (!stopHappeningOperations) {
             if (ticketPool.isPoolFull()) {
                 return;
             }
-            Ticket ticket = createTicket();
-            String isAdded = ticketPool.addTicket(ticket);
-            if (isAdded != null) {
-                eventPublisher.publish(new VendorEvent(vendor, EventTypes.ADD_TICKET, new EventMessage("Ticket addition successful",  Map.of("ticket", ticket))));
-            } else {
-                eventPublisher.publish(new VendorEvent(vendor, EventTypes.ADD_TICKET_FAILED, new EventMessage("Ticket addition failed", Map.of("ticket", ticket))));
-            }
+            Ticket ticket = new Ticket(vendor, randomNumberFinder.nextInt(2, 5));
+            ticketPool.addTicket(ticket);
             Thread.sleep(sellingInterval);
         }
     }
@@ -61,18 +49,21 @@ public class VendorSimulation extends SimulationAbstract {
             Ticket ticket = (Ticket) object;
             if (ticketPool.removeQuantityFullTickets(ticket, vendor)) {
                 removedTickets.add(ticket);
-            } else {
-                eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET_FAILED, new EventMessage("Ticket quantity full removal failed", Map.of("ticket", ticket))));
             }
         }
-        eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET, new EventMessage("Ticket quantity full removal successful")));
-        JsonWriter.writeToJsonPretty(removedTickets.stream().map(Ticket::toDto).collect(Collectors.toList()), "./vendor-data/vendor-" + vendor.getId() + "-" + ticketRemovalFileCreationCount + "-log.json");
+        if (!removedTickets.isEmpty()) {
+            JsonWriter.writeToJsonPretty(removedTickets.stream().map(Ticket::toDto).collect(Collectors.toList()), FilePaths.VENDOR + "/vendor-" + vendor.getId() + "-" + ticketRemovalFileCreationCount + "-log.json");
+        }
         ticketRemovalFileCreationCount++;
     }
 
     @Override
     public void start() throws InterruptedException {
-        while (!Thread.currentThread().isInterrupted()) {
+        if (!stopHappeningOperations) {
+            throw new IllegalArgumentException("Thread already running");
+        }
+        stopHappeningOperations = false;
+        while (!stopHappeningOperations) {
             simulateTicketSelling();
             Thread.sleep(5000);
             simulateTicketQuantityFullRemoval();
@@ -81,9 +72,15 @@ public class VendorSimulation extends SimulationAbstract {
     }
 
     @Override
-    public void stop() {
+    public void stop(boolean interruptThread) {
+        if (stopHappeningOperations) {
+            throw new IllegalArgumentException("Thread already stopped");
+        }
+        stopHappeningOperations = true;
         clearMem();
-        eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVED_THREAD, new EventMessage("Thread removal successful")));
+        if (interruptThread) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     @Override
@@ -93,13 +90,13 @@ public class VendorSimulation extends SimulationAbstract {
             Ticket ticket = (Ticket) obj;
             if (ticketPool.removeAllTickets(ticket, vendor)) {
                 removedTickets.add(ticket);
-            } else {
-                eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET_FAILED, new EventMessage("Ticket removal failed", Map.of("ticket", ticket))));
             }
         }
-        eventPublisher.publish(new VendorEvent(vendor, EventTypes.REMOVE_TICKET, new EventMessage("Ticket removal successful")));
-        JsonWriter.writeToJsonPretty(removedTickets.stream().map(Ticket::toDto).collect(Collectors.toList()), "./vendor-data/vendor-" + vendor.getId() + "-" + ticketRemovalFileCreationCount + "-log.json");
-        eventPublisher.publish(new VendorEvent(vendor, EventTypes.CLEAR_MEM, new EventMessage("Memory cleared successful")));
+        try {
+            JsonWriter.writeChunkedJsonFiles(FilePaths.VENDOR.toString(), "vendor", id, removedTickets.stream().map(Ticket::toDto).collect(Collectors.toList()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         ticketRemovalFileCreationCount++;
     }
 
@@ -107,9 +104,11 @@ public class VendorSimulation extends SimulationAbstract {
     public void run() {
         try {
             start();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        } catch (InterruptedException _) {
+            stop(true);
+        } catch (Exception e) {
+            stop(true);
+            throw new RuntimeException(e);
         }
-        stop();
     }
 }

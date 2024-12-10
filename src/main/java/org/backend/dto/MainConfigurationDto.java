@@ -10,6 +10,4 @@ public class MainConfigurationDto extends Dto {
     private int ticketReleaseRate;
     private int ticketRetrievalRate;
     private int maximumTicketCapacity;
-    private int totalNumberOfCustomers;
-    private int totalNumberOfVendors;
 }

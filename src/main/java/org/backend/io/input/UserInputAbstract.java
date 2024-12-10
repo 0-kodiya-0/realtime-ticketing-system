@@ -1,4 +1,4 @@
-package org.backend.input;
+package org.backend.io.input;
 
 import java.util.Arrays;
 import java.util.Scanner;
@@ -11,7 +11,7 @@ public abstract class UserInputAbstract {
         int attempts = 0;
         while (attempts < MAX_ATTEMPTS) {
             try {
-                System.out.println(prompt + " (only between " + minValue + " and " + maxValue + "): ");
+                System.out.print(prompt + " (only between " + minValue + " and " + maxValue + "): ");
                 String input = scanner.nextLine().trim();
                 if (input.isEmpty()) {
                     throw new IllegalArgumentException("Input cannot be empty");
@@ -40,7 +40,7 @@ public abstract class UserInputAbstract {
         int attempts = 0;
         while (attempts < MAX_ATTEMPTS) {
             try {
-                System.out.println(prompt);
+                System.out.print(prompt);
                 String input = scanner.nextLine().trim();
                 if (input.isEmpty()) {
                     throw new IllegalArgumentException("Input cannot be empty");
