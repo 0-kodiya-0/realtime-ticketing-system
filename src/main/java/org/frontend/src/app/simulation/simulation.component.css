@@ -1,0 +1,295 @@
+.settings-container {
+  padding: 2rem;
+  color: #E0E1DD;
+  margin-top: 5rem;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #E0E1DD;
+  border-bottom: 1px solid #415A77;
+  padding-bottom: 1rem;
+}
+
+.settings-layout {
+  display: flex;
+  gap: 2rem;
+  min-height: calc(100vh - 200px);
+}
+
+.sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  background-color: #0D1B2A;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.control-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #415A77;
+}
+
+.control-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #E0E1DD;
+}
+
+.control-btn.start { background-color: #28a745; }
+.control-btn.stop { background-color: #dc3545; }
+.control-btn.add { background-color: #415A77; }
+
+.control-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.control-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.simulation-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  padding: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #778DA9;
+  transition: all 0.2s ease;
+  background-color: #1B263B;
+}
+
+.nav-item:hover {
+  background-color: #1B263B;
+  color: #E0E1DD;
+}
+
+.nav-item.active {
+  background-color: #415A77;
+  color: #E0E1DD;
+}
+
+.entity-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.entity-type {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  background-color: #415A77;
+}
+
+.content-area {
+  flex-grow: 1;
+  background-color: #0D1B2A;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.controls-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.refresh-btn {
+  background-color: #415A77;
+  color: #E0E1DD;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background-color: #778DA9;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.data-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: calc(100vh - 400px);
+  overflow-y: auto;
+}
+
+.data-item {
+  background-color: #1B263B;
+  border-radius: 6px;
+  padding: 1rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.data-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #415A77;
+}
+
+.loading-indicator {
+  color: #778DA9;
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+
+.no-data-message {
+  color: #778DA9;
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.1rem;
+  background-color: #1B263B;
+  border-radius: 6px;
+  margin: 1rem 0;
+}
+
+.controls-bottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #415A77;
+}
+
+.nav-btn {
+  background-color: #415A77;
+  color: #E0E1DD;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background-color: #778DA9;
+}
+
+.nav-btn:disabled {
+  background-color: #1B263B;
+  cursor: not-allowed;
+}
+
+.page-indicator {
+  color: #778DA9;
+  font-size: 0.9rem;
+}
+
+/* Dialog styles */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.dialog {
+  background-color: #1B263B;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  animation: slideIn 0.3s ease;
+}
+
+/* ... rest of the dialog styles remain the same ... */
+
+/* Scrollbar styling */
+.data-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.data-container::-webkit-scrollbar-track {
+  background: #1B263B;
+  border-radius: 4px;
+}
+
+.data-container::-webkit-scrollbar-thumb {
+  background: #415A77;
+  border-radius: 4px;
+}
+
+.data-container::-webkit-scrollbar-thumb:hover {
+  background: #778DA9;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .settings-layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .simulation-navigation {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .nav-item {
+    white-space: nowrap;
+  }
+
+  .content-area {
+    padding: 1rem;
+  }
+
+  .data-container {
+    max-height: 500px;
+  }
+}

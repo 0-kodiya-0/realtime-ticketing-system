@@ -1,0 +1,107 @@
+<div class="settings-container">
+  <h1>{{ simulationType === 'customer' ? 'Customer' : 'Vendor' }} Simulation Monitor</h1>
+
+  <div class="settings-layout">
+    <aside class="sidebar">
+      <div class="control-buttons">
+        <button class="control-btn start" (click)="startEntity()" [disabled]="isLoading">
+          Start {{ simulationType === 'customer' ? 'Customer' : 'Vendor' }}
+        </button>
+        <button class="control-btn stop" (click)="stopEntity()" [disabled]="isLoading">
+          Stop {{ simulationType === 'customer' ? 'Customer' : 'Vendor' }}
+        </button>
+        <button class="control-btn add" (click)="openAddDialog()" [disabled]="isLoading">
+          Add {{ simulationType === 'customer' ? 'Customer' : 'Vendor' }}
+        </button>
+      </div>
+
+      <div class="simulation-navigation">
+        <div class="loading-indicator" *ngIf="isLoading">
+          Loading...
+        </div>
+
+        <div class="no-data-message" *ngIf="!isLoading && displayData.length === 0">
+          No {{ simulationType }}s found
+        </div>
+
+        <div *ngFor="let entity of displayData"
+             class="nav-item"
+             [class.active]="selectedId === (isCustomer(entity) ? entity.id : entity.id)"
+             (click)="selectedId = (isCustomer(entity) ? entity.id : entity.id)">
+          <div class="entity-info">
+            <span class="entity-id">ID: {{isCustomer(entity) ? entity.id : entity.id}}</span>
+            <span *ngIf="isCustomer(entity)" class="entity-type">{{entity.type}}</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content-area">
+      <div class="controls-top">
+        <button class="refresh-btn" (click)="refreshData()" [disabled]="isLoading">
+          Refresh Data
+        </button>
+      </div>
+
+      <div class="loading-indicator" *ngIf="isLoading">
+        Loading...
+      </div>
+
+      <div class="no-data-message" *ngIf="!isLoading && displayData.length === 0">
+        No {{ simulationType }} data found
+      </div>
+
+      <div class="data-container" *ngIf="!isLoading && displayData.length > 0">
+        <ng-container *ngIf="simulationType === 'customer'">
+          <div class="data-item" *ngFor="let customer of getCurrentPageData()">
+            <div class="data-header">
+              <span class="customer-id">Customer ID: {{customer.id}}</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="simulationType === 'vendor'">
+          <div class="data-item" *ngFor="let vendor of getCurrentPageData()">
+            <div class="data-header">
+              <span class="vendor-id">Vendor ID: {{vendor.id}}</span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="controls-bottom" *ngIf="!isLoading && displayData.length > 0">
+        <button class="nav-btn" [disabled]="currentPage === 0" (click)="goToPreviousPage()">
+          Previous
+        </button>
+        <span class="page-indicator">Page {{currentPage + 1}}</span>
+        <button class="nav-btn" [disabled]="(currentPage + 1) * itemsPerPage >= 50" (click)="goToNextPage()">
+          Next
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Dialog -->
+  <div class="dialog-overlay" *ngIf="showAddDialog">
+    <div class="dialog">
+      <h2>Add {{ simulationType === 'customer' ? 'Customer' : 'Vendor' }}</h2>
+      <div class="dialog-content">
+        <div class="form-group">
+          <label>Repetition Count:</label>
+          <input type="number" [(ngModel)]="repetitionCount" min="1" [disabled]="isLoading">
+        </div>
+
+        <div class="form-group" *ngIf="simulationType === 'customer'">
+          <label>
+            <input type="checkbox" [(ngModel)]="isVip" [disabled]="isLoading">
+            VIP Customer
+          </label>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button (click)="addEntity()" [disabled]="isLoading">{{isLoading ? 'Adding...' : 'Add'}}</button>
+        <button (click)="closeAddDialog()" [disabled]="isLoading">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

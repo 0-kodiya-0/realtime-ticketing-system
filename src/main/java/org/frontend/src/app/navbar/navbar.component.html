@@ -1,0 +1,48 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <div class="brand">
+      <span class="brand-name">ACME</span>
+      <span class="brand-subtitle">CORPORATION</span>
+    </div>
+
+    <div class="nav-links">
+      <a routerLink="/home" routerLinkActive="active">Home</a>
+      <a routerLink="/pool" routerLinkActive="active">Pool</a>
+
+      <!-- Simulation Dropdown -->
+      <div class="dropdown">
+        <a class="dropdown-trigger">
+          Simulation
+          <span class="dropdown-arrow">▼</span>
+        </a>
+        <div class="dropdown-menu">
+          <a routerLink="/simulation/customer" routerLinkActive="active">Customer Simulation</a>
+          <a routerLink="/simulation/vendor" routerLinkActive="active">Vendor Simulation</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="simulation-controls">
+      <div class="status-wrapper">
+        <div class="status-indicator">
+          <div class="status-dot" [class.active]="isSimulationRunning"></div>
+          <span class="status-text">{{isSimulationRunning ? 'Running' : 'Stopped'}}</span>
+        </div>
+      </div>
+      <div class="button-wrapper">
+        <button
+          class="simulation-btn start"
+          (click)="startSimulation()"
+          [disabled]="isSimulationRunning">
+          Start
+        </button>
+        <button
+          class="simulation-btn stop"
+          (click)="stopSimulation()"
+          [disabled]="!isSimulationRunning">
+          Stop
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
