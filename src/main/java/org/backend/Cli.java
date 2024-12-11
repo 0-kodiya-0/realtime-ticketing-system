@@ -10,11 +10,11 @@ import org.backend.pools.PurchasePool;
 import org.backend.pools.ThreadPool;
 import org.backend.pools.TicketPool;
 import org.backend.server.SpringBootServer;
-import org.backend.services.CustomerSimulation;
+import org.backend.simulation.CustomerSimulation;
 import org.backend.services.LiveMonitoring;
-import org.backend.services.VendorSimulation;
-import org.backend.thread.CustomThread;
-import org.backend.thread.ThreadExecutable;
+import org.backend.simulation.VendorSimulation;
+import org.backend.simulation.CustomThread;
+import org.backend.simulation.ThreadExecutable;
 
 import java.io.IOException;
 import java.util.List;
@@ -114,7 +114,7 @@ public class Cli {
 
     public static void startLiveHttpServerEventMonitor(Map<String, Object> operations) {
         SpringBootServer springBootServer = new SpringBootServer();
-        springBootServer.run(ticketPool, purchasePool, threadPool);
+        springBootServer.run(ticketPool, purchasePool, threadPool, mainConfiguration);
         CommandLineOperationInput.getEndContinuesOperation();
         springBootServer.stop();
         System.out.println("Server monitor thread ended");

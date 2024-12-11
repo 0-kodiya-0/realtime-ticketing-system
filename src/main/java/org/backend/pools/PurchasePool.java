@@ -2,20 +2,19 @@ package org.backend.pools;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.backend.enums.PurchaseStatus;
 import org.backend.model.Customer;
 import org.backend.model.Purchase;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class PurchasePool extends PoolAbstract {
 
-    public PurchasePool() {}
+    public PurchasePool() {
+    }
 
     public PurchasePool(int poolMaxCapacity) {
         super(poolMaxCapacity);

@@ -1,4 +1,4 @@
-package org.backend.services;
+package org.backend.simulation;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,7 +7,6 @@ import org.backend.io.file.JsonWriter;
 import org.backend.model.Ticket;
 import org.backend.model.Vendor;
 import org.backend.pools.TicketPool;
-import org.backend.thread.ThreadExecutableAbstract;
 
 import java.io.IOException;
 import java.util.ArrayList;

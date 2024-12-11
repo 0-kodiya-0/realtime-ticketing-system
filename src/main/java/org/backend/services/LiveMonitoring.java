@@ -2,7 +2,7 @@ package org.backend.services;
 
 import org.backend.pools.PurchasePool;
 import org.backend.pools.TicketPool;
-import org.backend.thread.ThreadExecutableAbstract;
+import org.backend.simulation.ThreadExecutableAbstract;
 
 import java.util.Date;
 

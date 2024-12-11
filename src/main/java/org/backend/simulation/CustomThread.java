@@ -1,4 +1,4 @@
-package org.backend.thread;
+package org.backend.simulation;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

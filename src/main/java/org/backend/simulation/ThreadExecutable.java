@@ -1,4 +1,4 @@
-package org.backend.thread;
+package org.backend.simulation;
 
 public interface ThreadExecutable extends Runnable {
     void start() throws InterruptedException;

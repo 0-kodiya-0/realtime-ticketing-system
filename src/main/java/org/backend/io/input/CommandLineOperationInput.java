@@ -2,9 +2,9 @@ package org.backend.io.input;
 
 import org.backend.enums.CommandLineOperationsTypes;
 import org.backend.enums.CustomerTypes;
-import org.backend.services.CustomerSimulation;
-import org.backend.thread.ThreadExecutable;
-import org.backend.services.VendorSimulation;
+import org.backend.simulation.CustomerSimulation;
+import org.backend.simulation.ThreadExecutable;
+import org.backend.simulation.VendorSimulation;
 
 import java.util.HashMap;
 import java.util.Map;

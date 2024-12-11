@@ -1,8 +1,8 @@
 package org.backend.pools;
 
 import lombok.Getter;
-import org.backend.thread.CustomThread;
-import org.backend.thread.ThreadExecutableAbstract;
+import org.backend.simulation.CustomThread;
+import org.backend.simulation.ThreadExecutableAbstract;
 
 import java.util.ArrayList;
 import java.util.List;
