@@ -1,87 +1,70 @@
 <div class="settings-container">
-  <h1>{{ simulationType === 'customer' ? 'Customer' : 'Vendor' }} Simulation Monitor</h1>
+  <h1>Simulation Monitor</h1>
 
   <div class="settings-layout">
-    <aside class="sidebar">
-      <div class="control-buttons">
-        <button class="control-btn start" (click)="startEntity()" [disabled]="isLoading">
-          Start {{ simulationType === 'customer' ? 'Customer' : 'Vendor' }}
-        </button>
-        <button class="control-btn stop" (click)="stopEntity()" [disabled]="isLoading">
-          Stop {{ simulationType === 'customer' ? 'Customer' : 'Vendor' }}
-        </button>
-        <button class="control-btn add" (click)="openAddDialog()" [disabled]="isLoading">
-          Add {{ simulationType === 'customer' ? 'Customer' : 'Vendor' }}
+    <div class="sidebar">
+      <div class="pool-navigation">
+        <div class="nav-item" [class.active]="simulationType === 'customer'" (click)="simulationType = 'customer'">
+          Customer Pool
+        </div>
+        <div class="nav-item" [class.active]="simulationType === 'vendor'" (click)="simulationType = 'vendor'">
+          Vendor Pool
+        </div>
+      </div>
+    </div>
+    <main class="content-area">
+      <div class="controls-top">
+        <div class="action-buttons">
+          <button class="square-btn" (click)="startEntity()" [disabled]="isLoading">
+            <span class="icon">▶</span>
+            <span class="btn-text">Start</span>
+          </button>
+          <button class="square-btn" (click)="stopEntity()" [disabled]="isLoading">
+            <span class="icon">■</span>
+            <span class="btn-text">Stop</span>
+          </button>
+          <button class="square-btn" (click)="openAddDialog()" [disabled]="isLoading">
+            <span class="icon">+</span>
+            <span class="btn-text">Add</span>
+          </button>
+        </div>
+        <button class="refresh-btn" (click)="refreshData()">
+          Refresh Data
         </button>
       </div>
 
-      <div class="simulation-navigation">
+      <div class="entity-container">
         <div class="loading-indicator" *ngIf="isLoading">
           Loading...
         </div>
 
-        <div class="no-data-message" *ngIf="!isLoading && displayData.length === 0">
+        <div class="no-data-message" *ngIf="!isLoading && getCurrentPageData().length === 0">
           No {{ simulationType }}s found
         </div>
 
-        <div *ngFor="let entity of displayData"
-             class="nav-item"
-             [class.active]="selectedId === (isCustomer(entity) ? entity.id : entity.id)"
-             (click)="selectedId = (isCustomer(entity) ? entity.id : entity.id)">
+        <div *ngFor="let entity of getCurrentPageData()"
+             class="entity-card"
+             [class.active]=entity.id (click)=entity.id>
           <div class="entity-info">
             <span class="entity-id">ID: {{isCustomer(entity) ? entity.id : entity.id}}</span>
             <span *ngIf="isCustomer(entity)" class="entity-type">{{entity.type}}</span>
           </div>
         </div>
       </div>
-    </aside>
 
-    <main class="content-area">
-      <div class="controls-top">
-        <button class="refresh-btn" (click)="refreshData()" [disabled]="isLoading">
-          Refresh Data
-        </button>
-      </div>
-
-      <div class="loading-indicator" *ngIf="isLoading">
-        Loading...
-      </div>
-
-      <div class="no-data-message" *ngIf="!isLoading && displayData.length === 0">
-        No {{ simulationType }} data found
-      </div>
-
-      <div class="data-container" *ngIf="!isLoading && displayData.length > 0">
-        <ng-container *ngIf="simulationType === 'customer'">
-          <div class="data-item" *ngFor="let customer of getCurrentPageData()">
-            <div class="data-header">
-              <span class="customer-id">Customer ID: {{customer.id}}</span>
-            </div>
-          </div>
-        </ng-container>
-
-        <ng-container *ngIf="simulationType === 'vendor'">
-          <div class="data-item" *ngFor="let vendor of getCurrentPageData()">
-            <div class="data-header">
-              <span class="vendor-id">Vendor ID: {{vendor.id}}</span>
-            </div>
-          </div>
-        </ng-container>
-      </div>
-
-      <div class="controls-bottom" *ngIf="!isLoading && displayData.length > 0">
-        <button class="nav-btn" [disabled]="currentPage === 0" (click)="goToPreviousPage()">
+      <div class="controls-bottom">
+        <button class="nav-btn" [disabled]="!canGoBack()" (click)="goToPreviousPage()">
           Previous
         </button>
         <span class="page-indicator">Page {{currentPage + 1}}</span>
-        <button class="nav-btn" [disabled]="(currentPage + 1) * itemsPerPage >= 50" (click)="goToNextPage()">
+        <button class="nav-btn" [disabled]="!canGoBack()" (click)="goToNextPage()">
           Next
         </button>
       </div>
     </main>
   </div>
 
-  <!-- Add Dialog -->
+  <!-- Updated Dialog -->
   <div class="dialog-overlay" *ngIf="showAddDialog">
     <div class="dialog">
       <h2>Add {{ simulationType === 'customer' ? 'Customer' : 'Vendor' }}</h2>

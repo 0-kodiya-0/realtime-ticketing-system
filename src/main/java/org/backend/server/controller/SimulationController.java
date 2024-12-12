@@ -124,8 +124,8 @@ public class SimulationController {
     }
 
     @GetMapping("/vendor/ticket-active/{:id}")
-    public List<TicketDto> ticketActive(@PathVariable String id) {
-        return ticketPool.findTicketsForVendor(id).stream().map(Ticket::toDto).toList();
+    public List<TicketDto> ticketActive(@PathVariable String id, @RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int skip) {
+        return ticketPool.findTicketsForVendor(id).stream().map(Ticket::toDto).skip(skip).limit(limit).toList();
     }
 
     @GetMapping("/vendor/ticket-removed/{:id}")

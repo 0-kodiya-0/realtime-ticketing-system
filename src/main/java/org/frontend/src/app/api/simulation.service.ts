@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {environment} from "../../environments/environment";
 import {CustomerDto, PurchaseDto, TicketDto, VendorDto} from "../dto/models.dto";
+import {RequestParams} from "../dto/request.dto";
 
 @Injectable({
     providedIn: 'root'
@@ -16,6 +17,20 @@ export class SimulationService {
         return this.http.get<boolean>(`${this.baseUrl}/is-running`);
     }
 
+    private buildPaginationParams(params: RequestParams): HttpParams {
+        let httpParams = new HttpParams();
+
+        if (params.limit !== undefined) {
+            httpParams = httpParams.set('limit', params.limit.toString());
+        }
+
+        if (params.skip !== undefined) {
+            httpParams = httpParams.set('skip', params.skip.toString());
+        }
+
+        return httpParams;
+    }
+
     // Simulation controls
     startSimulation(): Observable<number> {
         return this.http.get<number>(`${this.baseUrl}/start`);
@@ -26,12 +41,9 @@ export class SimulationService {
     }
 
     // Customer operations
-    getAllCustomers(limit: number = 10, skip: number = 0): Observable<CustomerDto[]> {
-        const params = new HttpParams()
-            .set('limit', limit.toString())
-            .set('skip', skip.toString());
-
-        return this.http.get<CustomerDto[]>(`${this.baseUrl}/customer/all`, { params });
+    getAllCustomers(params: RequestParams = { limit: 10, skip: 0 }): Observable<CustomerDto[]> {
+        const httpParams = this.buildPaginationParams(params);
+        return this.http.get<CustomerDto[]>(`${this.baseUrl}/customer/all`, { params: httpParams });
     }
 
     startCustomer(): Observable<number> {
@@ -57,12 +69,9 @@ export class SimulationService {
 
 
     // Vendor operations
-    getAllVendors(limit: number = 10, skip: number = 0): Observable<VendorDto[]> {
-        const params = new HttpParams()
-            .set('limit', limit.toString())
-            .set('skip', skip.toString());
-
-        return this.http.get<VendorDto[]>(`${this.baseUrl}/vendor/all`, { params });
+    getAllVendors(params: RequestParams = { limit: 10, skip: 0 }): Observable<VendorDto[]> {
+        const httpParams = this.buildPaginationParams(params);
+        return this.http.get<VendorDto[]>(`${this.baseUrl}/vendor/all`, { params:httpParams });
     }
 
     startVendor(): Observable<number> {
@@ -73,13 +82,11 @@ export class SimulationService {
         return this.http.get<number>(`${this.baseUrl}/vendor/stop`);
     }
 
-    getVendorActiveTickets(id: string): Observable<TicketDto[]> {
-        return this.http.get<TicketDto[]>(`${this.baseUrl}/vendor/ticket-active/${id}`);
+    getVendorActiveTickets(id: string, params: RequestParams = { limit: 10, skip: 0 }): Observable<TicketDto[]> {
+        const httpParams = this.buildPaginationParams(params);
+        return this.http.get<TicketDto[]>(`${this.baseUrl}/vendor/ticket-active/${id}`, { params:httpParams });
     }
 
-    getVendorRemovedTickets(id: string): Observable<TicketDto[]> {
-        return this.http.get<TicketDto[]>(`${this.baseUrl}/vendor/ticket-removed/${id}`);
-    }
     addVendors(repetitionCount: number): Observable<number> {
         const params = new HttpParams()
             .set('repetitionCount', repetitionCount.toString());

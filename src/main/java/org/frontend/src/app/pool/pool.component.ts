@@ -3,12 +3,7 @@ import { DatePipe, NgForOf, NgIf } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import {PoolService} from '../api/pool.service';
 import {PurchaseDto, TicketDto} from '../dto/models.dto';
-
-
-interface RequestParams {
-  limit: number;
-  skip: number;
-}
+import {RequestParams} from '../dto/request.dto';
 
 @Component({
   selector: 'app-pool',

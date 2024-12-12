@@ -1,15 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { DatePipe, NgForOf, NgIf } from '@angular/common';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../environments/environment';
-import { CustomerDto, VendorDto } from '../dto/models.dto';
-import { FormsModule } from '@angular/forms';
-
-interface RequestParams {
-  limit: number;
-  skip: number;
-}
+import {Component, OnInit} from '@angular/core';
+import {NgForOf, NgIf} from '@angular/common';
+import {CustomerDto, VendorDto} from '../dto/models.dto';
+import {FormsModule} from '@angular/forms';
+import {SimulationService} from '../api/simulation.service';
+import {RequestParams} from '../dto/request.dto';
 
 @Component({
   selector: 'app-simulation',
@@ -20,15 +14,12 @@ interface RequestParams {
 })
 export class SimulationComponent implements OnInit {
   simulationType: 'customer' | 'vendor' = 'customer';
-  selectedId: string | null = null;
 
-  // Cached data arrays
   customerData: CustomerDto[][] = [];
   vendorData: VendorDto[][] = [];
-  displayData: (CustomerDto | VendorDto)[] = [];
 
   currentPage = 0;
-  itemsPerPage = 50;  // Match pool component's page size
+  itemsPerPage = 50;
   isLoading = false;
 
   showAddDialog = false;
@@ -36,15 +27,12 @@ export class SimulationComponent implements OnInit {
   isVip = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private http: HttpClient
-  ) {}
+    private simulationService: SimulationService,
+  ) {
+  }
 
   ngOnInit() {
-    this.route.data.subscribe(data => {
-      this.simulationType = data['type'];
-      this.loadInitialData();
-    });
+    this.loadInitialData();
   }
 
   loadInitialData() {
@@ -52,20 +40,6 @@ export class SimulationComponent implements OnInit {
     this.customerData = [];
     this.vendorData = [];
     this.loadPageData(0);
-  }
-
-  private buildPaginationParams(params: RequestParams): HttpParams {
-    let httpParams = new HttpParams();
-
-    if (params.limit !== undefined) {
-      httpParams = httpParams.set('limit', params.limit.toString());
-    }
-
-    if (params.skip !== undefined) {
-      httpParams = httpParams.set('skip', params.skip.toString());
-    }
-
-    return httpParams;
   }
 
   loadPageData(pageNumber: number) {
@@ -77,45 +51,27 @@ export class SimulationComponent implements OnInit {
       skip: pageNumber * this.itemsPerPage
     };
 
-    const endpoint = this.simulationType === 'customer' ? 'customer/all' : 'vendor/all';
-
-
-    this.http.get<CustomerDto[] | VendorDto[]>(`${environment.apiUrl}/simulation/${endpoint}`, { params: this.buildPaginationParams(params) })
-      .subscribe({
+    if (this.simulationType === 'customer') {
+      this.simulationService.getAllCustomers(params).subscribe({
         next: (data) => {
-          try {
-            if (this.simulationType === 'customer') {
-              this.customerData[pageNumber] = data as unknown as CustomerDto[];
-              this.displayData = this.customerData[pageNumber];
-            } else {
-              this.vendorData[pageNumber] = data as unknown as VendorDto[];
-              this.displayData = this.vendorData[pageNumber];
-            }
-          } catch (error) {
-            console.error('Error processing data:', error);
-            // Reset data for this page
-            if (this.simulationType === 'customer') {
-              this.customerData[pageNumber] = [];
-            } else {
-              this.vendorData[pageNumber] = [];
-            }
-            this.displayData = [];
-          }
+          this.customerData[pageNumber] = data;
+          this.isLoading = false;
         },
-        error: (error) => {
-          console.error('Error fetching data:', error);
-          // Reset data for this page
-          if (this.simulationType === 'customer') {
-            this.customerData[pageNumber] = [];
-          } else {
-            this.vendorData[pageNumber] = [];
-          }
-          this.displayData = [];
-        },
-        complete: () => {
+        error: () => {
           this.isLoading = false;
         }
       });
+    } else {
+      this.simulationService.getAllVendors(params).subscribe({
+        next: (data) => {
+          this.vendorData[pageNumber] = data;
+          this.isLoading = false;
+        },
+        error: () => {
+          this.isLoading = false;
+        }
+      });
+    }
 
   }
 
@@ -168,16 +124,9 @@ export class SimulationComponent implements OnInit {
     if (this.isLoading) return;
 
     this.isLoading = true;
-    const endpoint = this.simulationType === 'customer' ? 'customer/add' : 'vendor/add';
-    let params = new HttpParams()
-      .set('repetitionCount', this.repetitionCount.toString());
 
     if (this.simulationType === 'customer') {
-      params = params.set('isVip', this.isVip.toString());
-    }
-
-    this.http.post<number>(`${environment.apiUrl}/simulation/${endpoint}`, null, { params })
-      .subscribe({
+      this.simulationService.addCustomers(this.isVip, this.repetitionCount).subscribe({
         next: () => {
           this.closeAddDialog();
           this.loadInitialData();
@@ -189,15 +138,31 @@ export class SimulationComponent implements OnInit {
           this.isLoading = false;
         }
       });
+
+    } else {
+      this.simulationService.addVendors(this.repetitionCount).subscribe({
+        next: () => {
+          this.closeAddDialog();
+          this.loadInitialData();
+        },
+        error: (error) => {
+          console.error('Error adding entity:', error);
+        },
+        complete: () => {
+          this.isLoading = false;
+        }
+      });
+
+    }
   }
 
   startEntity() {
     if (this.isLoading) return;
 
     this.isLoading = true;
-    const endpoint = this.simulationType === 'customer' ? 'customer/start' : 'vendor/start';
-    this.http.get<number>(`${environment.apiUrl}/simulation/${endpoint}`)
-      .subscribe({
+
+    if (this.simulationType === 'customer') {
+      this.simulationService.startCustomer().subscribe({
         next: () => this.loadInitialData(),
         error: (error) => {
           console.error('Error starting entity:', error);
@@ -206,15 +171,26 @@ export class SimulationComponent implements OnInit {
           this.isLoading = false;
         }
       });
+    } else {
+      this.simulationService.startVendor().subscribe({
+        next: () => this.loadInitialData(),
+        error: (error) => {
+          console.error('Error starting entity:', error);
+        },
+        complete: () => {
+          this.isLoading = false;
+        }
+      });
+    }
   }
 
   stopEntity() {
     if (this.isLoading) return;
 
     this.isLoading = true;
-    const endpoint = this.simulationType === 'customer' ? 'customer/stop' : 'vendor/stop';
-    this.http.get<number>(`${environment.apiUrl}/simulation/${endpoint}`)
-      .subscribe({
+
+    if (this.simulationType === 'customer') {
+      this.simulationService.stopCustomer().subscribe({
         next: () => this.loadInitialData(),
         error: (error) => {
           console.error('Error stopping entity:', error);
@@ -223,6 +199,17 @@ export class SimulationComponent implements OnInit {
           this.isLoading = false;
         }
       });
+    } else {
+      this.simulationService.stopVendor().subscribe({
+        next: () => this.loadInitialData(),
+        error: (error) => {
+          console.error('Error stopping entity:', error);
+        },
+        complete: () => {
+          this.isLoading = false;
+        }
+      });
+    }
   }
 
   isCustomer(entity: CustomerDto | VendorDto): entity is CustomerDto {

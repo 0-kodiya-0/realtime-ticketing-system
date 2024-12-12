@@ -1,6 +1,9 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {RouterLink, RouterLinkActive} from '@angular/router';
 import {SimulationService} from '../api/simulation.service';
+import {WebsocketService} from '../api/websocket.service';
+import {SummarySimulation} from '../dto/websocket.dto';
+import {StompSubscription} from '@stomp/stompjs';
 
 @Component({
   selector: 'app-navbar',
@@ -11,10 +14,34 @@ import {SimulationService} from '../api/simulation.service';
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   isSimulationRunning = false;
+  private webSocketSubscription: StompSubscription | undefined;
 
-  constructor(private simulationService: SimulationService) {
+  constructor(private simulationService: SimulationService, private websocketService: WebsocketService) {
+    this.websocketService.connect().then(value => {
+      this.subscribeWebSocket()
+      this.websocketService.onConnectionChange().subscribe(value => {
+        if (value && this.webSocketSubscription == null) {
+          this.subscribeWebSocket();
+        } else {
+          if (this.webSocketSubscription !== undefined) {
+            this.webSocketSubscription.unsubscribe();
+          }
+        }
+      });
+    });
+  }
+
+  subscribeWebSocket() {
+    this.webSocketSubscription = this.websocketService.subscribePathSummery("simulation", message => {
+      if (message != null) {
+        const newMessage: SummarySimulation = message as unknown as SummarySimulation;
+        if (newMessage.activeCustomerCount > 0 && newMessage.activeVendorCount > 0) {
+          this.isSimulationRunning = true;
+        }
+      }
+    });
   }
 
   isRunning() {
@@ -66,5 +93,14 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit(): void {
     this.isRunning();
+    if (this.webSocketSubscription === undefined) {
+      this.subscribeWebSocket();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.webSocketSubscription !== undefined) {
+      this.webSocketSubscription.unsubscribe();
+    }
   }
 }
