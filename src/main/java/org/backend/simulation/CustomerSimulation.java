@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Represents a customer simulation that extends ThreadExecutableAbstract for concurrent execution.
+ * Manages customer-specific behaviors and interactions with the ticket system.
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class CustomerSimulation extends ThreadExecutableAbstract {
@@ -28,9 +32,13 @@ public class CustomerSimulation extends ThreadExecutableAbstract {
     public CustomerSimulation(int buyingInterval, CustomerTypes isCustomerType, TicketPool ticketPool, PurchasePool purchasePool) {
         this.buyingInterval = buyingInterval;
         this.customer.setType(isCustomerType);
+
+        // Associated the thread id with the customer id
         this.id = this.customer.getId();
         this.ticketPool = ticketPool;
         this.purchasePool = purchasePool;
+
+        // Sets the thread pool priority to max if the customer is vip
         if (customer.getType().equals(CustomerTypes.VIP)) {
             threadPriority = Thread.MAX_PRIORITY;
         } else {
@@ -38,6 +46,13 @@ public class CustomerSimulation extends ThreadExecutableAbstract {
         }
     }
 
+    /**
+     * Simulates continuous ticket buying behavior for a customer at specified intervals.
+     * Iterates through available tickets that haven't reached the full quantity.
+     * Attempts to queue and purchase them.
+     * Process includes queuing the ticket and completing the purchase with specified delays between operations.
+     * @throws InterruptedException if the thread is interrupted during sleep intervals
+     */
     private void simulateBuying() throws InterruptedException {
         while (!stopHappeningOperations) {
             for (Ticket ticket : ticketPool.findAllQuantityNotFullTicket()) {
@@ -51,6 +66,12 @@ public class CustomerSimulation extends ThreadExecutableAbstract {
         }
     }
 
+    /**
+     * Processes and removes all purchases associated with the current customer from the pool.
+     * Iterates through active purchases in the pool, attempts to remove each purchase
+     * linked to the customer, and collects removed purchases in a list.
+     * @return List<Purchase> collection of all successfully removed purchase records
+     */
     private List<Purchase> removeCustomerPurchases() {
         List<Purchase> removedPurchases = new ArrayList<>();
         for (Object obj : purchasePool.getInUseObjects()) {
@@ -83,6 +104,12 @@ public class CustomerSimulation extends ThreadExecutableAbstract {
         }
     }
 
+    /**
+     * Cleans up memory by removing customer purchases and saving them to JSON files.
+     * Converts purchases to DTOs and writes them in chunks to maintain performance.
+     * Files are saved with customer-specific identifiers in the specified path.
+     * @throws IOException if there's an error writing the JSON files
+     */
     @Override
     public void clearMem() {
         List<Purchase> removeCustomerPurchases = removeCustomerPurchases();
@@ -90,7 +117,6 @@ public class CustomerSimulation extends ThreadExecutableAbstract {
             JsonWriter.writeChunkedJsonFiles(FilePaths.CUSTOMER.toString(), "customer", id, removeCustomerPurchases.stream().map(Purchase::toDto).collect(Collectors.toList()));
         } catch (IOException e) {
             e.printStackTrace();
-            return;
         }
     }
 

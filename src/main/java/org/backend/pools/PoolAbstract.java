@@ -5,6 +5,11 @@ import lombok.Data;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Base abstract class for implementing object pool pattern functionality.
+ * Provides common infrastructure for managing pooled objects, including allocation, deallocation, and state management.
+ * Serves as a template for specific pool implementations.
+ */
 @Data
 public abstract class PoolAbstract {
     protected final ConcurrentLinkedQueue<Object> inUseObjects = new ConcurrentLinkedQueue<>();
@@ -13,6 +18,7 @@ public abstract class PoolAbstract {
     private int poolUsedCapacity = 0;
 
     public PoolAbstract() {
+        // The default max capacity
         poolMaxCapacity = 1000;
     }
 

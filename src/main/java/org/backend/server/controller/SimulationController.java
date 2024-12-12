@@ -13,6 +13,7 @@ import org.backend.pools.ThreadPool;
 import org.backend.pools.TicketPool;
 import org.backend.simulation.CustomerSimulation;
 import org.backend.simulation.ThreadExecutable;
+import org.backend.simulation.ThreadExecutableAbstract;
 import org.backend.simulation.VendorSimulation;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,6 +24,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Manages and controls the overall simulation lifecycle for the ticket system through http.
+ * Provides methods for checking simulation status, starting and stopping the
+ * simulation execution. Acts as the main controller for coordinating simulation
+ * components.
+ */
 @RestController
 @RequestMapping("/simulation")
 public class SimulationController {
@@ -59,7 +66,7 @@ public class SimulationController {
 
     @GetMapping("/customer/all")
     public List<CustomerDto> allCustomers(@RequestParam(defaultValue = "10") int limit, @RequestParam(defaultValue = "0") int skip) {
-        return threadPool.findTargetClassThread(CustomerSimulation.class).stream().map(CustomerSimulation::getCustomer).map(Customer::toDto).toList();
+        return threadPool.findTargetClassThread(CustomerSimulation.class).stream().map(CustomerSimulation::getCustomer).map(Customer::toDto).skip(skip).limit(limit).toList();
     }
 
     @GetMapping("/customer/start")
@@ -79,10 +86,10 @@ public class SimulationController {
         }, repetitionCount);
     }
 
-//    @GetMapping("/customer/active")
-//    public List<CustomerDto> activeCustomers() {
-//        return threadPool.findTargetClassThread(CustomerSimulation.class).stream().filter(ThreadExecutableAbstract::isRunning).map(CustomerSimulation::getCustomer).map(Customer::toDto).toList();
-//    }
+    @GetMapping("/customer/active")
+    public List<CustomerDto> activeCustomers() {
+        return threadPool.findTargetClassThread(CustomerSimulation.class).stream().filter(ThreadExecutableAbstract::isRunning).map(CustomerSimulation::getCustomer).map(Customer::toDto).toList();
+    }
 
     @GetMapping("/customer/purchase/{:id}")
     public List<PurchaseDto> allPurchases(@PathVariable String id) {
@@ -111,10 +118,10 @@ public class SimulationController {
         }, repetitionCount);
     }
 
-//    @GetMapping("/vendor/active")
-//    public List<VendorDto> activeVendor() {
-//        return threadPool.findTargetClassThread(VendorSimulation.class).stream().filter(ThreadExecutableAbstract::isRunning).map(VendorSimulation::getVendor).map(Vendor::toDto).toList();
-//    }
+    @GetMapping("/vendor/active")
+    public List<VendorDto> activeVendor() {
+        return threadPool.findTargetClassThread(VendorSimulation.class).stream().filter(ThreadExecutableAbstract::isRunning).map(VendorSimulation::getVendor).map(Vendor::toDto).toList();
+    }
 
     @GetMapping("/vendor/ticket-active/{:id}")
     public List<TicketDto> ticketActive(@PathVariable String id) {

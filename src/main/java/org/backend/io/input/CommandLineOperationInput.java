@@ -9,8 +9,14 @@ import org.backend.simulation.VendorSimulation;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Define the logic where the command input are validated and asked from the user
+ */
 public class CommandLineOperationInput extends UserInputAbstract {
 
+    /**
+     * Displays the different operations and its associated number to the user
+     */
     public static void displayOperations() {
         System.out.println("------------------------------------------------------------");
         System.out.println("Command line operations ");
@@ -29,8 +35,13 @@ public class CommandLineOperationInput extends UserInputAbstract {
         System.out.println("------------------------------------------------------------");
     }
 
+    /**
+     * Prompts the user to select the customer type (VIP or NOT_VIP).
+     *
+     * @return the selected customer type as a {@link CustomerTypes} enum value
+     */
     private static CustomerTypes getCustomerType() {
-        int customerType = getValidIntegerInput("Enter customers type" + "\n1. " + CustomerTypes.VIP.name().toLowerCase() + "\n2. " + CustomerTypes.NOT_VIP.name().toLowerCase() + "\n" + " ", 1, 2);
+        int customerType = getValidIntegerInput("Enter customers type" + "\n1. " + CustomerTypes.VIP.name().toLowerCase().replaceAll("_" , " ") + "\n2. " + CustomerTypes.NOT_VIP.name().toLowerCase().replaceAll("_", " ") + "\n" + " ", 1, 2);
         if (customerType == 1) {
             return CustomerTypes.VIP;
         } else {
@@ -42,8 +53,18 @@ public class CommandLineOperationInput extends UserInputAbstract {
         return getValidIntegerInput("Enter quantity", 1, 20);
     }
 
+    /**
+     * Prompts the user to select the simulation type (customer, vendor, or both) to run or stop running simulations.
+     *
+     * @return the {@link Class} object representing the selected simulation type:
+     *         <ul>
+     *             <li>{@link CustomerSimulation} if the user selects customer simulation (option 1)</li>
+     *             <li>{@link VendorSimulation} if the user selects vendor simulation (option 2)</li>
+     *             <li>{@link ThreadExecutable} if the user selects both simulations (option 3)</li>
+     *         </ul>
+     */
     private static Class<? extends ThreadExecutable> getSimulationType(){
-        int customerType = getValidIntegerInput("Enter simulation type" + "\n1. customer \n2. vendor \n3. both" + " ", 1, 3);
+        int customerType = getValidIntegerInput("Enter simulation type" + "\n1. customer \n2. vendor \n3. both\n " + " ", 1, 3);
         if (customerType == 1) {
             return CustomerSimulation.class;
         } else if (customerType == 2) {
@@ -53,6 +74,17 @@ public class CommandLineOperationInput extends UserInputAbstract {
         }
     }
 
+    /**
+     * Prompts the user to select an operation and returns a map containing the operation details.
+     *
+     * @return a map with the following key-value pairs:
+     *         <ul>
+     *             <li>"operation" - The selected {@link CommandLineOperationsTypes} operation</li>
+     *             <li>"quantity" - Quantity (if applicable for the selected operation)</li>
+     *             <li>"customerType" - The {@link CustomerTypes} enum value (if applicable for the selected operation)</li>
+     *             <li>"simulationType" - The simulation type as a {@link Class} object (if applicable for the selected operation)</li>
+     *         </ul>
+     */
     public static Map<String, Object> getOperations() {
         HashMap<String, Object> stringObjectHashMap = new HashMap<>();
         CommandLineOperationsTypes operation = CommandLineOperationsTypes.getCommand(getValidIntegerInput("Enter operation", 0, 9));
@@ -72,6 +104,10 @@ public class CommandLineOperationInput extends UserInputAbstract {
         return stringObjectHashMap;
     }
 
+    /**
+     * Waits for the user to press the Enter key to continue the operation.
+     * This method is used to end running programs such as spring boot server or live monitoring.
+     */
     public static void getEndContinuesOperation() {
         isEnterKeyPressed("");
     }

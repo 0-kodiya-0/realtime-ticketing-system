@@ -57,6 +57,14 @@ public class ThreadPool extends PoolAbstract {
         return addedTasks;
     }
 
+    /**
+     * Removes specified number of running tasks of a given type from the thread pool.
+     * Checks pool state and removes tasks that match the target class type up to the specified repetitions count.
+     * @param targetClass Class type of threads to be removed
+     * @param repetitions Number of thread tasks to remove
+     * @return int Number of successfully removed tasks
+     * @throws IllegalArgumentException if the pool is empty
+     */
     public <T extends ThreadExecutableAbstract> int removeRunnable(Class<T> targetClass, int repetitions) {
         int removedTasks = 0;
         if (getInUseObjects().isEmpty()) {
@@ -81,9 +89,16 @@ public class ThreadPool extends PoolAbstract {
             removedTasks++;
             currentRepetitions++;
         }
+        // error time
         return removedTasks;
     }
 
+    /**
+     * Initiates execution of all non-running threads of a specific type in the pool.
+     * Iterates through in-use objects, identifies threads of target class type that aren't running, and starts their execution.
+     * @param targetClass Class type of threads to be started
+     * @return int Number of threads successfully started
+     */
     public int startNotRunningThreads(Class<? extends ThreadExecutableAbstract> targetClass) {
         int startedThreads = 0;
         for (Object obj : inUseObjects) {

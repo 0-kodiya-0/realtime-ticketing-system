@@ -6,19 +6,18 @@ import org.backend.dto.VendorDto;
 
 import java.util.UUID;
 
+/**
+ * Represents a vendor entity.
+ * This class encapsulates the properties and behavior of a vendor.
+ * It implements the {@link DataToDto} interface, allowing conversion to a {@link VendorDto} object.
+ */
 @Data
 public class Vendor implements DataToDto<VendorDto> {
     private final String id;
-    private boolean isDeleted = false;
 
     public Vendor() {
+        // Random UUID generate to create unique id for each vendor instance
         this.id = UUID.randomUUID().toString();
-    }
-
-    public void deleted() {
-        if (!this.isDeleted) {
-            this.isDeleted = true;
-        }
     }
 
     @Override

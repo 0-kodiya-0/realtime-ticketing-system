@@ -13,6 +13,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * TicketPool is a specialized subclass of `PoolAbstract` designed to manage a collection of `Ticket` objects.
+ * It provides functionality to add, remove, and retrieve tickets, ensuring efficient pooling of resources.
+ * This class helps in managing tickets as reusable objects in a thread-safe manner.
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class TicketPool extends PoolAbstract {
@@ -99,6 +104,7 @@ public class TicketPool extends PoolAbstract {
         if (ticket == null) {
             return null;
         }
+        // Que the ticket
         return ticket.lockAndExecute(() -> {
             if (ticket.isDeleted() || ticket.isBoughtQuantityReachedMaxQuantity()) {
                 return null;
@@ -114,6 +120,7 @@ public class TicketPool extends PoolAbstract {
         if (purchase == null || !purchase.getCustomer().equals(customer)) {
             return null;
         }
+        // Buy ticket
         return purchase.lockAndExecute(() -> {
             if (!purchase.getPurchaseStatus().equals(PurchaseStatus.PENDING)) {
                 return null;

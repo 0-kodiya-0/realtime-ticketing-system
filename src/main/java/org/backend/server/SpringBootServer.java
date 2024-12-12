@@ -10,6 +10,14 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+/**
+ * Main Spring Boot application server for the ticket management system.
+ * Configures system pools as Spring beans, handles server lifecycle, and
+ * provides dependency injection for core components. Enables scheduling
+ * for automated tasks.
+ * @SpringBootApplication marks this as the main Spring Boot application
+ * @EnableScheduling enables scheduled task execution
+ */
 @SpringBootApplication
 @EnableScheduling
 public class SpringBootServer {
@@ -21,6 +29,13 @@ public class SpringBootServer {
     private static ThreadPool customerPool;
     private static MainConfigurationDto mainConfigurationDto;
 
+
+    /**
+     * Creates and registers system pools and configuration as Spring beans.
+     * Manages single instances of TicketPool, PurchasePool, ThreadPool,
+     * and MainConfigurationDto for dependency injection.
+     * @return Respective pool or configuration instance
+     */
     @Bean
     public static TicketPool ticketPool() {
         return ticketPool;
@@ -45,6 +60,14 @@ public class SpringBootServer {
         run.stop();
     }
 
+    /**
+     * Initializes and starts the Spring Boot server with provided pools.
+     * Sets up system dependencies and launches the application context.
+     * @param ticketPool Pool managing ticket operations
+     * @param vendorPool Pool managing purchase operations
+     * @param customerPool Pool managing thread operations
+     * @param mainConfigurationDto Main system configuration
+     */
     public void run(TicketPool ticketPool, PurchasePool vendorPool, ThreadPool customerPool, MainConfigurationDto mainConfigurationDto) {
         SpringBootServer.ticketPool = ticketPool;
         SpringBootServer.vendorPool = vendorPool;
