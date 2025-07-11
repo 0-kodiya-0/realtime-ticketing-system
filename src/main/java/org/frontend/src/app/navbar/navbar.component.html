@@ -1,0 +1,37 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <div class="brand">
+      <span class="brand-name">ACME</span>
+      <span class="brand-subtitle">CORPORATION</span>
+    </div>
+
+    <div class="nav-links">
+      <a routerLink="/home" routerLinkActive="active">Home</a>
+      <a routerLink="/pool" routerLinkActive="active">Pool</a>
+      <a routerLink="/simulation" routerLinkActive="active">Simulation</a>
+    </div>
+
+    <div class="simulation-controls">
+      <div class="status-wrapper">
+        <div class="status-indicator">
+          <div class="status-dot" [class.active]="isSimulationRunning"></div>
+          <span class="status-text">{{isSimulationRunning ? 'Running' : 'Stopped'}}</span>
+        </div>
+      </div>
+      <div class="button-wrapper">
+        <button
+          class="simulation-btn start"
+          (click)="startSimulation()"
+          [disabled]="isSimulationRunning">
+          Start
+        </button>
+        <button
+          class="simulation-btn stop"
+          (click)="stopSimulation()"
+          [disabled]="!isSimulationRunning">
+          Stop
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,90 @@
+<div class="settings-container">
+  <h1>Simulation Monitor</h1>
+
+  <div class="settings-layout">
+    <div class="sidebar">
+      <div class="pool-navigation">
+        <div class="nav-item" [class.active]="simulationType === 'customer'" (click)="simulationType = 'customer'">
+          Customer Pool
+        </div>
+        <div class="nav-item" [class.active]="simulationType === 'vendor'" (click)="simulationType = 'vendor'">
+          Vendor Pool
+        </div>
+      </div>
+    </div>
+    <main class="content-area">
+      <div class="controls-top">
+        <div class="action-buttons">
+          <button class="square-btn" (click)="startEntity()" [disabled]="isLoading">
+            <span class="icon">▶</span>
+            <span class="btn-text">Start</span>
+          </button>
+          <button class="square-btn" (click)="stopEntity()" [disabled]="isLoading">
+            <span class="icon">■</span>
+            <span class="btn-text">Stop</span>
+          </button>
+          <button class="square-btn" (click)="openAddDialog()" [disabled]="isLoading">
+            <span class="icon">+</span>
+            <span class="btn-text">Add</span>
+          </button>
+        </div>
+        <button class="refresh-btn" (click)="refreshData()">
+          Refresh Data
+        </button>
+      </div>
+
+      <div class="entity-container">
+        <div class="loading-indicator" *ngIf="isLoading">
+          Loading...
+        </div>
+
+        <div class="no-data-message" *ngIf="!isLoading && getCurrentPageData().length === 0">
+          No {{ simulationType }}s found
+        </div>
+
+        <div *ngFor="let entity of getCurrentPageData()"
+             class="entity-card"
+             [class.active]=entity.id (click)=entity.id>
+          <div class="entity-info">
+            <span class="entity-id">ID: {{isCustomer(entity) ? entity.id : entity.id}}</span>
+            <span *ngIf="isCustomer(entity)" class="entity-type">{{entity.type}}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls-bottom">
+        <button class="nav-btn" [disabled]="!canGoBack()" (click)="goToPreviousPage()">
+          Previous
+        </button>
+        <span class="page-indicator">Page {{currentPage + 1}}</span>
+        <button class="nav-btn" [disabled]="!canGoBack()" (click)="goToNextPage()">
+          Next
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Updated Dialog -->
+  <div class="dialog-overlay" *ngIf="showAddDialog">
+    <div class="dialog">
+      <h2>Add {{ simulationType === 'customer' ? 'Customer' : 'Vendor' }}</h2>
+      <div class="dialog-content">
+        <div class="form-group">
+          <label>Repetition Count:</label>
+          <input type="number" [(ngModel)]="repetitionCount" min="1" [disabled]="isLoading">
+        </div>
+
+        <div class="form-group" *ngIf="simulationType === 'customer'">
+          <label>
+            <input type="checkbox" [(ngModel)]="isVip" [disabled]="isLoading">
+            VIP Customer
+          </label>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button (click)="addEntity()" [disabled]="isLoading">{{isLoading ? 'Adding...' : 'Add'}}</button>
+        <button (click)="closeAddDialog()" [disabled]="isLoading">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

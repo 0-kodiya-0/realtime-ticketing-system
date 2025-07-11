@@ -1,0 +1,24 @@
+<!-- summary.component.html -->
+<div class="summary-container">
+  <h1>Summary</h1>
+  <div class="summary-grid">
+    <div class="summary-card" *ngFor="let summary of summaries">
+      <div class="card-header">
+        {{summary.title}}
+      </div>
+      <div class="total-count">
+        {{summary.total}}
+      </div>
+      <div class="details">
+        <div class="detail-item">
+          <span class="label">{{summary.primaryLabel}}</span>
+          <span class="value primary">{{summary.primaryValue}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">{{summary.secondaryLabel}}</span>
+          <span class="value secondary">{{summary.secondaryValue}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

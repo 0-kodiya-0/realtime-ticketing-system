@@ -1,0 +1,71 @@
+<div class="settings-container">
+  <h1>Pool Settings</h1>
+
+  <div class="settings-layout">
+    <div class="sidebar">
+      <div class="pool-navigation">
+        <div class="nav-item" [class.active]="selectedPool === 'ticket'" (click)="selectedPool = 'ticket'">
+          Ticket Pool
+        </div>
+        <div class="nav-item" [class.active]="selectedPool === 'purchase'" (click)="selectedPool = 'purchase'">
+          Purchase Pool
+        </div>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <div class="controls-top">
+        <button class="refresh-btn" (click)="refreshData()">Refresh Data</button>
+      </div>
+
+      <div class="pool-content" *ngIf="selectedPool === 'ticket'">
+        <div *ngIf="isLoading" class="loading-indicator">
+          Loading...
+        </div>
+        <div *ngIf="!isLoading && getCurrentPageData().length === 0" class="no-data-message">
+          No ticket data found
+        </div>
+        <div class="data-container">
+          <div class="data-item" *ngFor="let ticket of getCurrentPageData()">
+            <div class="data-header">
+              <span class="vendor-id">Vendor ID: {{ticket.vendorId}}</span>
+              <span class="timestamp">{{ticket.timestamp | date:'medium'}}</span>
+            </div>
+            <div class="data-body">
+              <p>Quantity: {{ticket.quantity}}</p>
+              <p>Bought: {{ticket.boughtQuantity}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pool-content" *ngIf="selectedPool === 'purchase'">
+        <div *ngIf="isLoading" class="loading-indicator">
+          Loading...
+        </div>
+        <div *ngIf="!isLoading && getCurrentPageData().length === 0" class="no-data-message">
+          No purchase data found
+        </div>
+        <div class="data-container">
+          <div class="data-item" *ngFor="let purchase of getCurrentPageData()">
+            <div class="data-header">
+              <span class="ticket-id">Ticket ID: {{purchase.ticketId}}</span>
+              <span class="timestamp">{{purchase.purchaseDate | date:'medium'}}</span>
+            </div>
+            <div class="data-body">
+              <p>Customer ID: {{purchase.customerId}}</p>
+              <p>Status: {{purchase.purchaseStatus}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls-bottom">
+        <button class="nav-btn" [disabled]="!canGoBack()" (click)="goToPreviousPage()">Previous</button>
+        <span class="page-indicator">Page {{currentPage + 1}}</span>
+        <button class="nav-btn" [disabled]="!canGoForward()" (click)="goToNextPage()">Next</button>
+      </div>
+    </div>
+  </div>
+</div>

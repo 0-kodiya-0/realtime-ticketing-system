@@ -1,0 +1,107 @@
+@startuml
+skinparam packagePadding 10
+skinparam nodesep 40
+skinparam ranksep 40
+skinparam actorStyle awesome
+left to right direction
+
+actor "Program Operator" as admin #white
+
+rectangle "Simulation System" {
+    package "Simulation Entities Management" {
+        usecase "Add Customer Entity" as UC1
+        usecase "Remove Customer Entity" as UC2
+        usecase "Add Vendor Entity" as UC3
+        usecase "Remove Vendor Entity" as UC4
+        usecase "Add to Thread Pool" as UCT1
+    }
+
+    package "Simulation Control" {
+        usecase "Start Simulation" as SS
+        usecase "Stop Simulation" as STS
+        usecase "Create Customer Thread" as CCT
+        usecase "Create Vendor Thread" as CVT
+    }
+
+    package "Simulation Monitoring" {
+        usecase "View Console Log" as VCL
+        usecase "View Web Interface" as VWI
+        usecase "Monitor Live Threads" as MLT
+        usecase "Track Transactions" as TT
+    }
+
+    package "Automated Operations" {
+        usecase "Perform Timed Purchase" as PTP
+        usecase "Add to Purchase Pool" as APP
+        usecase "Create Timed Ticket" as CTT
+        usecase "Add to Ticket Pool" as ATP
+    }
+
+    package "Pool System" {
+        usecase "Manage Thread Pool" as TP
+        usecase "Manage Purchase Pool" as PP
+        usecase "Manage Ticket Pool" as TKP
+    }
+}
+
+' Admin relationships (placed closer)
+admin -right-> UC1
+admin -right-> UC2
+admin -right-> UC3
+admin -right-> UC4
+admin -right-> SS
+admin -right-> STS
+admin -right-> VCL
+admin -right-> VWI
+
+' Monitoring relationships
+VCL ..> MLT : <<includes>>
+VWI ..> MLT : <<includes>>
+MLT ..> TT : <<includes>>
+TT ..> PP : <<monitors>>
+TT ..> TKP : <<monitors>>
+MLT ..> TP : <<monitors>>
+
+' Thread Creation relationships
+SS ..> CCT : <<includes>>
+SS ..> CVT : <<includes>>
+CCT ..> PTP : <<triggers periodically>>
+CVT ..> CTT : <<triggers periodically>>
+
+' Include relationships
+UC1 ..> UCT1 : <<includes>>
+UC3 ..> UCT1 : <<includes>>
+PTP ..> APP : <<includes>>
+CTT ..> ATP : <<includes>>
+
+' Pool relationships
+UCT1 --> TP : <<updates>>
+CCT --> TP : <<creates thread>>
+CVT --> TP : <<creates thread>>
+APP --> PP : <<updates>>
+ATP --> TKP : <<updates>>
+
+note right of TP
+    Thread Pool:
+    Stores simulation entities
+    and their active threads
+end note
+
+note right of PTP
+    Automated Behavior:
+    Entities perform actions
+    at specified intervals
+end note
+
+note right of SS
+    Simulation Control:
+    Admin manages entities
+    and their execution
+end note
+
+note right of MLT
+    Live Monitoring:
+    View real-time simulation
+    in console and web
+end note
+@enduml
