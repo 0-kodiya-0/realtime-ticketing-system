@@ -1,5 +1,28 @@
 # Real-Time Event Ticketing System
 
+> **ACADEMIC PROJECT NOTICE**
+> 
+> **This project is developed for educational purposes as part of university coursework.**
+> 
+> - **Course**: Object-Oriented Programming (OOP) Coursework
+> - **Academic Year**: 2024/2025
+> - **Purpose**: Demonstrate advanced OOP concepts, multi-threading, and producer-consumer patterns
+> - **Usage**: For educational and learning purposes only
+> 
+> ---
+> 
+> **Learning Objectives Demonstrated:**
+> - Advanced Object-Oriented Programming principles
+> - Multi-threading and synchronization concepts
+> - Producer-Consumer design pattern implementation
+> - Thread-safe operations and concurrency control
+> - Full-stack application development
+> - Real-time system design and WebSocket communication
+> 
+> **This code is NOT intended for commercial use or production deployment.**
+
+---
+
 ## Overview
 
 The Real-Time Event Ticketing System is a comprehensive simulation application that demonstrates advanced producer-consumer patterns, multi-threading, and synchronization concepts. The system simulates a real-world ticket booking scenario where multiple vendors can release tickets concurrently while multiple customers attempt to purchase them.
