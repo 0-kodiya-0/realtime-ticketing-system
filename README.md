@@ -57,7 +57,7 @@ The project follows a full-stack architecture with clear separation of concerns:
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/0-kodiya-0/OOP_CW.git
    cd real-time-ticketing-system
    ```
 
